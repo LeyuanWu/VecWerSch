@@ -7,7 +7,7 @@ import pyvista as pv;
 import numpy as np;
 import pandas as pd;
 import time;
-from gravity_forward import *;
+from gravity_forward_numpy import *;
 # %%
 # # ! Icosphere
 N = 4;

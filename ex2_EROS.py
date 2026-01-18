@@ -2,10 +2,9 @@ import numpy as np
 from scipy.io import loadmat
 import pandas as pd;
 import time;
-from IPython.display import display
+from IPython.display import display;
 import pyvista as pv;
-from gravity_forward import VecWerSch;
-# from gravity_forward_numba import *;
+from gravity_forward_numba import VecWerSch_numba;
 # %%
 # ! # Load EROS <Geometry>
 eros_mat = loadmat('EROS.mat');
@@ -37,8 +36,8 @@ print(f'tc_matlab: {tc_matlab:.2f} sec');
 # %%
 # ! #  Numpy Vectorized code comutation
 rho = 2670.;
-xgv = np.linspace(-20., 20., 101);
-ygv = np.linspace(-10., 10., 101);
+xgv = np.linspace(-20., 20., 401);
+ygv = np.linspace(-10., 10., 201);
 [X2d, Y2d] = np.meshgrid(xgv, ygv);
 z0 = -6.3;
 Z2d = z0 * np.ones(X2d.shape);
@@ -47,7 +46,7 @@ P = np.column_stack((X2d.flatten(), Y2d.flatten(), Z2d.flatten()));
 t1 = time.time();
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal \
-    = VecWerSch(P, Vert, Faces, rho);
+    = VecWerSch_numba(P, Vert, Faces, rho);
 tc_np = time.time() - t1;
 print(f'Computation size: {X2d.shape}');
 print(f'tc_numpy: {tc_np:.2f} sec');
@@ -55,7 +54,7 @@ print(f'tc_numpy: {tc_np:.2f} sec');
 # ! #  Pandas disp stats 
 fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
 V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r = \
-    (arr[::2, ::4] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz))
+    (arr[::1, ::1] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz))
 
 df_ref = pd.DataFrame({
     name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
@@ -73,7 +72,7 @@ df_diff = df_cal - df_ref
 def styled_table(df, title):
     return (
         df.style
-        .format('{:.14e}')
+        .format('{:12.6f}')
         .set_properties(**{'text-align': 'center'})
         .set_caption(f"<h3>{title}</h3>")
     )

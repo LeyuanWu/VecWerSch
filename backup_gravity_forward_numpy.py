@@ -1,7 +1,6 @@
 # %%
 # ! # Setup
 import numpy as np;
-from gravity_forward import *;
 
 def VecWerSch_ver0(P, Q, If, rho):
     """_summary_

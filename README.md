@@ -19,10 +19,10 @@
 
 
 1. Theory
-   - [ ] Polyhedral gravity derivation [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/README.ipynb)
-   - [ ] Vectorized code design [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/VecWerSch.ipynb)
+   - [x] Polyhedral gravity derivation [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/README.ipynb)
+   - [x] Vectorized code design [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/VecWerSch.ipynb)
 2. Numerical Examples
    - [ ] Icosphere [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex1_Icosphere.py)
-   - [ ] EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
+   - [x] EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
 
 

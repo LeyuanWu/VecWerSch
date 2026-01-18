@@ -2,7 +2,7 @@
 # ! # Setup
 import numpy as np;
 import pyvista as pv;
-from gravity_forward import *;
+from gravity_forward_numpy import *;
 # %%
 # ! # Rectangular prism
 hx = 10. / 2.; hy = 10. / 2.; hz = 10. / 2.;
