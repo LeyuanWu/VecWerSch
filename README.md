@@ -13,29 +13,16 @@
    
   4. DEM model comparison: > 🖼️ **Fig: difference between the three models** [How large? $2^{\circ} \times 2^{\circ}$ or $5^{\circ} \times 5^{\circ}$ patches?]
 
-  1. EROS > 🖼️ **Fig: EROS model including field points on the surface and on spheres** [$18$ km? $20$ km?]
+  5. EROS > 🖼️ **Fig: EROS model including field points on the surface and on spheres** [ $18$ or $20$ km?]
    
-  2. EROS model computation validating the Green's third identity (see equation~A1)
+  6. EROS model computation validating the Green's third identity (see equation~A1)
 
 
 1. Theory
-   - [ ] Polyhedral gravity derivation [Jupyter Notebook]
-         (https://github.com/LeyuanWu/VecWerSch/blob/main/README.ipynb)
-1. Numerical Examples
-   - [ ] Icosphere [Jupyter Notebook]
-         (https://github.com/LeyuanWu/VecWerSch/blob/main/ex1_Icosphere.py)
-   - [ ] EROS [Jupyter Notebook]
-         (https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
+   - [ ] Polyhedral gravity derivation [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/README.ipynb)
+   - [ ] Vectorized code design [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/VecWerSch.ipynb)
+2. Numerical Examples
+   - [ ] Icosphere [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex1_Icosphere.py)
+   - [ ] EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
 
 
-**Appendix**
-
-*Green's third identity*
-
-$$
-V(\mathbf{r}) = \frac{1}{4\pi} \oint_S 
-\left[ 
-V(\mathbf{r}') \frac{\partial}{\partial n'} \left( \frac{1}{|\mathbf{r} - \mathbf{r}'|} \right)
-    - \frac{1}{|\mathbf{r} - \mathbf{r}'|} \frac{\partial V(\mathbf{r}')}{\partial n'}
-\right] dS' \tag{A1}
-$$

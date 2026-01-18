@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.io import loadmat
-import pyvista as pv;
 import pandas as pd;
 import time;
-from gravity_forward import *;
+from IPython.display import display
+import pyvista as pv;
+from gravity_forward import VecWerSch;
 # from gravity_forward_numba import *;
 # %%
 # ! # Load EROS <Geometry>
@@ -34,7 +35,7 @@ tc_matlab = eros_grav['time_cost'].item();
 print(f'Computation size: {V.shape}');
 print(f'tc_matlab: {tc_matlab:.2f} sec');
 # %%
-# ! #  Numpy Vectorized code 
+# ! #  Numpy Vectorized code comutation
 rho = 2670.;
 xgv = np.linspace(-20., 20., 101);
 ygv = np.linspace(-10., 10., 101);
@@ -52,26 +53,31 @@ print(f'Computation size: {X2d.shape}');
 print(f'tc_numpy: {tc_np:.2f} sec');
 # %%
 # ! #  Pandas disp stats 
-V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz \
-    = (arr[::2,::4] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz));
-Grefs = {'V': V, 'gx': gx, 'gy': gy, 'gz': gz,
-         'Txx': Txx, 'Tyy': Tyy, 'Tzz': Tzz,
-         'Txy': Txy, 'Txz': Txz, 'Tyz': Tyz};
-stats = {
-    name: {'Min': arr.min(), 'Max': arr.max(),
-           'Mean': arr.mean(), 'Std': arr.std()}
-    for name, arr in Grefs.items()};
-df1 = pd.DataFrame(stats).T;
-df1.index.name = 'Reference';
-df1.style.format('{:.12e}').set_properties(**{'text-align': 'center'})
+fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
+V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r = \
+    (arr[::2, ::4] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz))
 
-Gcals = {'V': V_cal, 'gx': gx_cal, 'gy': gy_cal, 'gz': gz_cal,
-         'Txx': Txx_cal, 'Tyy': Tyy_cal, 'Tzz': Tzz_cal,
-         'Txy': Txy_cal, 'Txz': Txz_cal, 'Tyz': Tyz_cal};
-stats = {
-    name: {'Min': arr.min(), 'Max': arr.max(),
-           'Mean': arr.mean(), 'Std': arr.std()}
-    for name, arr in Gcals.items()};
-df2 = pd.DataFrame(stats).T;
-df2.index.name = 'Polyhedron';
-df2.style.format('{:.12e}').set_properties(**{'text-align': 'center'})
+df_ref = pd.DataFrame({
+    name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
+    for name, arr in zip(fields, [V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r])
+}).T
+
+df_cal = pd.DataFrame({
+    name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
+    for name, arr in zip(fields, [V_cal, gx_cal, gy_cal, gz_cal, 
+                                  Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal])
+}).T
+
+df_diff = df_cal - df_ref
+
+def styled_table(df, title):
+    return (
+        df.style
+        .format('{:.14e}')
+        .set_properties(**{'text-align': 'center'})
+        .set_caption(f"<h3>{title}</h3>")
+    )
+
+display(styled_table(df_ref, "Reference"))
+display(styled_table(df_cal, "Polyhedron"))
+display(styled_table(df_diff, "Difference"))
