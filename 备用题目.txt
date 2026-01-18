@@ -1,3 +1,0 @@
-地球科学Python开源软件Fatiando a Terra
-复现该文工作：
-Hirt, C., and M. Kuhn (2014), Band-limited topographic mass distribution generates full-spectrum gravity field: Gravity forward modeling in the spectral and spatial domains revisited, J. Geophys. Res. Solid Earth, 119, 3646–3661, doi:10.1002/2013JB010900.

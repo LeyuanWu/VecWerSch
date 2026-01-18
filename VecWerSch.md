@@ -153,3 +153,6 @@ $$
 --------
 ### References
 - Werner, R.A., Scheeres, D.J. Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mech Dyn Astr 65, 313–344 (1996). https://doi.org/10.1007/BF00053511
+- Zhang, Y., Chen, C. Forward calculation of gravity and its gradient using polyhedral representation of density interfaces: an application of spherical or ellipsoidal topographic gravity effect. J Geod 92, 205–218 (2018). https://doi.org/10.1007/s00190-017-1057-3
+- Dahl, V. A., Dahl, A. B., & Larsen, R. (2014). Surface Detection Using Round Cut. 2014 2nd International Conference on 3D Vision. https://doi.org/10.1109/3dv.2014.60 (GitHub Repo: https://github.com/vedranaa/icosphere)
+- Sullivan and Kaszynski, (2019). PyVista: 3D plotting and mesh analysis through a streamlined interface for the Visualization Toolkit (VTK). Journal of Open Source Software, 4(37), 1450, https://doi.org/10.21105/joss.01450
