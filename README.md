@@ -18,12 +18,20 @@
   2. EROS model computation validating the Green's third identity (see equation~A1)
 
 
-1. Icosphere
-   - [ ] Icosphere [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex1_Icosphere.py)
-   - [ ] EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
+1. Theory
+   - [ ] Polyhedral gravity derivation [Jupyter Notebook]
+         (https://github.com/LeyuanWu/VecWerSch/blob/main/README.ipynb)
+1. Numerical Examples
+   - [ ] Icosphere [Jupyter Notebook]
+         (https://github.com/LeyuanWu/VecWerSch/blob/main/ex1_Icosphere.py)
+   - [ ] EROS [Jupyter Notebook]
+         (https://github.com/LeyuanWu/VecWerSch/blob/main/ex2_EROS.py)
 
 
 **Appendix**
+
+*Green's third identity*
+
 $$
 V(\mathbf{r}) = \frac{1}{4\pi} \oint_S 
 \left[ 

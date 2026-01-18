@@ -34,7 +34,7 @@ tc_matlab = eros_grav['time_cost'].item();
 print(f'Computation size: {V.shape}');
 print(f'tc_matlab: {tc_matlab:.2f} sec');
 # %%
-# ! # 
+# ! #  Numpy Vectorized code 
 rho = 2670.;
 xgv = np.linspace(-20., 20., 101);
 ygv = np.linspace(-10., 10., 101);
@@ -47,13 +47,11 @@ t1 = time.time();
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal \
     = VecWerSch(P, Vert, Faces, rho);
-# V_cal = VecWerSch_numba(P, Vert, Faces, rho);
-t2 = time.time();
-tc_np = t2 - t1;
+tc_np = time.time() - t1;
 print(f'Computation size: {X2d.shape}');
 print(f'tc_numpy: {tc_np:.2f} sec');
 # %%
-######## * Stats
+# ! #  Pandas disp stats 
 V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz \
     = (arr[::2,::4] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz));
 Grefs = {'V': V, 'gx': gx, 'gy': gy, 'gz': gz,
@@ -66,8 +64,7 @@ stats = {
 df1 = pd.DataFrame(stats).T;
 df1.index.name = 'Reference';
 df1.style.format('{:.12e}').set_properties(**{'text-align': 'center'})
-# %%
-######## * Stats
+
 Gcals = {'V': V_cal, 'gx': gx_cal, 'gy': gy_cal, 'gz': gz_cal,
          'Txx': Txx_cal, 'Tyy': Tyy_cal, 'Tzz': Tzz_cal,
          'Txy': Txy_cal, 'Txz': Txz_cal, 'Tyz': Tyz_cal};
