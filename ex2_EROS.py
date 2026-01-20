@@ -34,7 +34,7 @@ tc_matlab = eros_grav['time_cost'].item();
 print(f'Computation size: {V.shape}');
 print(f'tc_matlab: {tc_matlab:.2f} sec');
 # %%
-# ! #  Numpy Vectorized code comutation
+# ! #  Numba code computation
 rho = 2670.;
 xgv = np.linspace(-20., 20., 401);
 ygv = np.linspace(-10., 10., 201);
@@ -47,9 +47,9 @@ t1 = time.time();
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal \
     = VecWerSch_numba(P, Vert, Faces, rho);
-tc_np = time.time() - t1;
+tc_numba = time.time() - t1;
 print(f'Computation size: {X2d.shape}');
-print(f'tc_numpy: {tc_np:.2f} sec');
+print(f'tc_numba: {tc_numba:.2f} sec');
 # %%
 # ! #  Pandas disp stats 
 fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
@@ -66,17 +66,6 @@ df_cal = pd.DataFrame({
 }).T
 df_diff = df_cal - df_ref
 
-# def styled_table(df, title):
-#     return (
-#         df.style
-#         .format('{:12.6f}')
-#         .set_properties(**{'text-align': 'center'})
-#         .set_caption(f"<h3>{title}</h3>")
-#     )
-# display(styled_table(df_ref, "Reference"))
-# display(styled_table(df_cal, "Polyhedron"))
-# display(styled_table(df_diff, "Difference"))
-
 def print_table(df, title):
     print(f"\n{title}")
     print("=" * len(title))
@@ -84,3 +73,10 @@ def print_table(df, title):
 print_table(df_ref, "Reference")
 print_table(df_cal, "Polyhedron")
 print_table(df_diff, "Difference")
+
+# %%
+df_ref
+# %%
+df_cal
+# %%
+df_diff
