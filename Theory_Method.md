@@ -1,4 +1,9 @@
-### Polyhedron Gravitation
+
+## *Python code for vectorized efficient computation of polyhedral gravitational fields*
+
+**Target Journal:** [Geophysics: *Software and algorithm*]
+
+### Theory and Method
 
 #### GP, GV, GGT expressions
 
@@ -56,7 +61,7 @@ $$
 $$
 which involves inner, cross and mixed vector products.
 
-#### Decoupling computation and polyhedron coordinates
+### Decoupling computation and polyhedron coordinates
 
 Terms *involving both polyhedron and computation coordinates* needs to be decoupled to simplify vectorized coding.
 
@@ -77,9 +82,7 @@ Terms *involving both polyhedron and computation coordinates* needs to be decoup
 
 We have $M$ computation points storing in $\big[P \big]_{M \times 3}$, and $N$ polyhedron vertices storing in the matrix $\big[A \big]_{N \times 3}$, $N=N_f$ when evaluating $\omega_f$, and $N=N_e$ when evaluating $L_e$. 
 
-##### *Pairwise distance*: 
-
-We can compute $M \times N$ pariwise distance $r_{PA}$ ($r_{PB}$ and $r_{PC}$ analogously) as:
+- *Pairwise distance*: We can compute $M \times N$ pairwise distance $r_{PA}$ ($r_{PB}$ and $r_{PC}$ analogously) as:
 
 $$
 r_{PA} = |\mathbf{r}_A-\mathbf{r}_P|=\sqrt{|\mathbf{r}_P|^2 + |\mathbf{r}_A|^2 -2 \mathbf{r}_P \cdot \mathbf{r}_A}
@@ -92,9 +95,7 @@ rP_rA = P @ A.T;                                      # (M,3) @ (3,N) --> (M,N)
 rPA   = np.sqrt(rP2[:,np.newaxis] + rA2 - 2 * rP_rA); # Broadcasting (M,1), (N,), (M,N) --> (M,N)
 ```
 
-##### *Inner product*: 
-
-We can compute $M \times N$ pariwise inner product $\mathbf{r}_{PA} \cdot \mathbf{r}_{PB}$ ($\mathbf{r}_{PB} \cdot \mathbf{r}_{PC}$ and $\mathbf{r}_{PC} \cdot \mathbf{r}_{PA}$ analogously) as:
+- *Inner product*: We can compute $M \times N$ pairwise inner product $\mathbf{r}_{PA} \cdot \mathbf{r}_{PB}$ ($\mathbf{r}_{PB} \cdot \mathbf{r}_{PC}$ and $\mathbf{r}_{PC} \cdot \mathbf{r}_{PA}$ analogously) as:
 
 $$
 \begin{aligned}
@@ -112,7 +113,7 @@ rP_rArB = P @ (A+B).T;                         # (M,3) @ (3,N) --> (M,N)
 rPA_rPB = rP2[:,np.newaxis] + rA_rB - rP_rArB; # Broadcasting (M,1), (N,), (M,N) --> (M,N)
 ```
 
-##### *Mixed product*: 
+- *Mixed product*: 
 
 $$
 \begin{aligned}
@@ -122,8 +123,7 @@ $$
 \end{aligned}
 $$
 
-> **Note:** Relation with $\mathbf{r}_f \cdot \hat{\mathbf{n}}_f$
-
+- Relation with $\mathbf{r}_f \cdot \hat{\mathbf{n}}_f$
 Let
 $$
 \begin{aligned}
@@ -138,17 +138,37 @@ $$
 = \frac{\mathbf{r}_{PA} \cdot (\mathbf{r}_{PB} \times \mathbf{r}_{PC})}{|2S_{\Delta ABC}|}
 $$
 
-#### Further accelerate:
+- *Further accelerate*: By indexing into $\big[ PQ^T \big]_{M\times N_v}$, we got $\big[ P\alpha^T \big]_{M\times N_f}$, $\alpha \in {A, B, C}$ for face evaluation, and $\big[ P\alpha^T \big]_{M\times N_e}$, $\alpha \in {A, B}$ for edge evaluation.
 
-**By indexing into $\big[ PQ^T \big]_{M\times N_v}$, better!!!**
 
-```python
+### Numerical examples: 
 
-```
+  1. Sphere approximated by polyhedral using two approaches: (1) recursive subdivision of an icosahedron, and (2) an equal longitude-latitude grid with increasing resolution. > 🖼️ **Fig: PyVista plot showing these two approximations** [level 0, 1, 2]
+   
+  2. Draw plots to show multiple parameter changes with respect to the level of subdivision $n$ or the resolution $\Delta \lambda$, choose $\Delta \lambda = 60/2^n$ degrees so that the two have similar resolution; > 🖼️ **Fig: plot showing the increase of $N_V$, $N_F$, convergence of $area$, $volume$ compared to the unit sphere, and the change of min/max spherical distance $\psi$, max/min edge ratio $\alpha$ and area ratio $\beta$ for triangles...**
+   
+  3. DEM models using (1) Planar approximation; (2) Spherical approximation; (3) Ellipsoidal; > 🖼️ **Fig: PyVista plot showing these 3 models, including field points** [Himalaya? Alps?]
+   
+  4. DEM model comparison: > 🖼️ **Fig: difference between the three models** [How large? $2^{\circ} \times 2^{\circ}$ or $5^{\circ} \times 5^{\circ}$ patches?]
 
-```python
+  5. EROS > 🖼️ **Fig: EROS model including field points on the surface and on spheres** [$18$ km? $20$ km?]
+   
+  6. EROS model computation validating the Green's third identity (see equation~A1)
 
-```
+
+**Appendix**
+
+*Green's third identity*
+
+$$
+V(\mathbf{r}) = \frac{1}{4\pi} \oint_S 
+\left[ 
+V(\mathbf{r}') \frac{\partial}{\partial n'} \left( \frac{1}{|\mathbf{r} - \mathbf{r}'|} \right)
+    - \frac{1}{|\mathbf{r} - \mathbf{r}'|} \frac{\partial V(\mathbf{r}')}{\partial n'}
+\right] dS' \tag{A1}
+$$
+
+
 
 --------
 ### References
