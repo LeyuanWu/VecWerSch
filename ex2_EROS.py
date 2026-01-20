@@ -55,28 +55,32 @@ print(f'tc_numpy: {tc_np:.2f} sec');
 fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
 V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r = \
     (arr[::1, ::1] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz))
-
 df_ref = pd.DataFrame({
     name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
     for name, arr in zip(fields, [V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r])
 }).T
-
 df_cal = pd.DataFrame({
     name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
     for name, arr in zip(fields, [V_cal, gx_cal, gy_cal, gz_cal, 
                                   Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal])
 }).T
-
 df_diff = df_cal - df_ref
 
-def styled_table(df, title):
-    return (
-        df.style
-        .format('{:12.6f}')
-        .set_properties(**{'text-align': 'center'})
-        .set_caption(f"<h3>{title}</h3>")
-    )
+# def styled_table(df, title):
+#     return (
+#         df.style
+#         .format('{:12.6f}')
+#         .set_properties(**{'text-align': 'center'})
+#         .set_caption(f"<h3>{title}</h3>")
+#     )
+# display(styled_table(df_ref, "Reference"))
+# display(styled_table(df_cal, "Polyhedron"))
+# display(styled_table(df_diff, "Difference"))
 
-display(styled_table(df_ref, "Reference"))
-display(styled_table(df_cal, "Polyhedron"))
-display(styled_table(df_diff, "Difference"))
+def print_table(df, title):
+    print(f"\n{title}")
+    print("=" * len(title))
+    print(df.to_string(float_format="{:12.6f}".format))
+print_table(df_ref, "Reference")
+print_table(df_cal, "Polyhedron")
+print_table(df_diff, "Difference")
