@@ -2,7 +2,6 @@ import numpy as np
 from scipy.io import loadmat
 import pandas as pd;
 import time;
-from IPython.display import display;
 import pyvista as pv;
 from gravity_forward_numba import VecWerSch_numba;
 # %%
@@ -53,11 +52,10 @@ print(f'tc_numba: {tc_numba:.2f} sec');
 # %%
 # ! #  Pandas disp stats 
 fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
-V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r = \
-    (arr[::1, ::1] for arr in (V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz))
+
 df_ref = pd.DataFrame({
     name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
-    for name, arr in zip(fields, [V_r, gx_r, gy_r, gz_r, Txx_r, Tyy_r, Tzz_r, Txy_r, Txz_r, Tyz_r])
+    for name, arr in zip(fields, [V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz])
 }).T
 df_cal = pd.DataFrame({
     name: {'Min': arr.min(), 'Max': arr.max(), 'Mean': arr.mean(), 'Std': arr.std()}
