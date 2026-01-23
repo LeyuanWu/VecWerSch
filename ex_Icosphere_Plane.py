@@ -24,13 +24,13 @@ MINs_psi = np.zeros(nsub_max);
 MAXs_psi = np.zeros(nsub_max);
 for insub, nsub in enumerate(Nsubs):
     icosph = pv.Icosphere(radius=a, center=(xc, yc, zc), nsub=nsub);
-    Vert  = icosph.points;
+    Verts = icosph.points;
     Faces = icosph.regular_faces;
-    NVs[insub] = Vert.shape[0];
+    NVs[insub] = Verts.shape[0];
     NFs[insub] = Faces.shape[0];
     Es_vol[insub] = 1. - icosph.volume/vol;
     Es_area[insub] = 1. - icosph.area/area;
-    vert_unit = (Vert - np.array([xc, yc, zc]))/a;
+    vert_unit = (Verts - np.array([xc, yc, zc]))/a;
     min_psi, max_psi = spherical_edge_length_range(vert_unit, Faces);
     MINs_psi[insub] = 60. * np.rad2deg(min_psi); # arc-min
     MAXs_psi[insub] = 60. * np.rad2deg(max_psi);
@@ -61,7 +61,7 @@ print(f'<Sphere> time cost: {tc_sphere:.2f} sec');
 t1 = time.time();
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal \
-    = VecWerSch_numba(P, Vert, Faces, rho);
+    = VecWerSch_numba(P, Verts, Faces, rho);
 tc_numba = time.time() - t1;
 print(f'<Polyhedron> time cost: {tc_numba:.2f} sec');
 # %%

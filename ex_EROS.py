@@ -11,11 +11,11 @@ eros_vf  = eros_mat['eros11272_22540'];  # shape: (nVert + nFace, 3)
 nF       = 22540;
 nVpF     = eros_vf.shape[0];
 nV       = nVpF - nF;
-Vert     = eros_vf[:nV, :].astype(np.float64);
+Verts    = eros_vf[:nV, :].astype(np.float64);
 Faces    = eros_vf[nV:, :].astype(np.int64);
-X1, X2   = Vert[:, 0].min(), Vert[:, 0].max();
-Y1, Y2   = Vert[:, 1].min(), Vert[:, 1].max();
-Z1, Z2   = Vert[:, 2].min(), Vert[:, 2].max();
+X1, X2   = Verts[:, 0].min(), Verts[:, 0].max();
+Y1, Y2   = Verts[:, 1].min(), Verts[:, 1].max();
+Z1, Z2   = Verts[:, 2].min(), Verts[:, 2].max();
 print(f'Number of <Vertex> : {nV}');
 print(f'Number of <Faces>  : {nF}');
 print(f'Bounding box (km)  :\n'
@@ -45,7 +45,7 @@ P = np.column_stack((X2d.flatten(), Y2d.flatten(), Z2d.flatten()));
 t1 = time.time();
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Tyy_cal, Tzz_cal, Txy_cal, Txz_cal, Tyz_cal \
-    = VecWerSch_numba(P, Vert, Faces, rho);
+    = VecWerSch_numba(P, Verts, Faces, rho);
 tc_numba = time.time() - t1;
 print(f'Computation size: {X2d.shape}');
 print(f'tc_numba: {tc_numba:.2f} sec');
