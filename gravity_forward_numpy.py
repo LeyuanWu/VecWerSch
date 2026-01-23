@@ -287,7 +287,10 @@ def spherical_edge_length_range(verts, faces):
     edges_unique = np.unique(edges_sorted, axis=0);
     v0 = verts[edges_unique[:, 0]];
     v1 = verts[edges_unique[:, 1]];
-    dots = np.einsum('ij,ij->i', v0, v1);
-    dots = np.clip(dots, -1.0, 1.0)
-    dist = np.arccos(dots)
+    # dots = np.einsum('ij,ij->i', v0, v1);
+    # dots = np.clip(dots, -1.0, 1.0)
+    # dist = np.arccos(dots)
+    chord = np.linalg.norm(v1 - v0, axis=1)
+    chord = np.clip(chord, 0.0, 2.0)
+    dist = 2.0 * np.arcsin(0.5 * chord)
     return np.min(dist), np.max(dist)
