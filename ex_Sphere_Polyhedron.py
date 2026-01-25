@@ -6,6 +6,7 @@
 # %%
 # # ! Setup
 import pyvista as pv
+# pv.set_jupyter_backend('static')
 import numpy as np
 from gravity_forward_numpy import spherical_edge_length_range
 # %%
@@ -15,7 +16,7 @@ from gravity_forward_numpy import spherical_edge_length_range
 VOL_TRUE = 4 * np.pi / 3
 AREA_TRUE = 4 * np.pi
 
-nsub_max = 9
+nsub_max = 10
 NSUBs = np.arange(nsub_max)
 
 # ------------------------------------------------------------------
@@ -111,4 +112,4 @@ for col, nsub in enumerate(pickNs):
     pl.camera.zoom(1.25)
 
 pl.show()
-pl.screenshot("icosphere_geographic.png");
+pl.screenshot("icosphere_geosphere.png");
