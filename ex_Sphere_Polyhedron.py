@@ -7,75 +7,108 @@
 # # ! Setup
 import pyvista as pv
 import numpy as np
-from gravity_forward_numba import *
-from gravity_forward_numpy import *
+from gravity_forward_numpy import spherical_edge_length_range
 # %%
 # # ! Recursive subdivision of an icosahedron
-nsub_max = 9;
-Nsubs = np.arange(nsub_max);
-NVs = np.zeros(nsub_max, dtype=int);
-NFs = np.zeros(nsub_max, dtype=int);
-Es_vol   = np.zeros(nsub_max);
-Es_area  = np.zeros(nsub_max);
-MINs_psi = np.zeros(nsub_max);
-MAXs_psi = np.zeros(nsub_max);
-vol = 4*np.pi/3; area = 4*np.pi;
-for i, nsub in enumerate(Nsubs):
-    icosph = pv.Icosphere(nsub=nsub);
-    Verts = icosph.points;
-    Faces = icosph.regular_faces;
-    NVs[i] = Verts.shape[0];
-    NFs[i] = Faces.shape[0];
-    Es_vol[i]  = 1. - icosph.volume/vol;
-    Es_area[i] = 1. - icosph.area/area;
-    min_psi, max_psi = spherical_edge_length_range(Verts, Faces);
-    MINs_psi[i] = 60. * np.rad2deg(min_psi); # in arc-min
-    MAXs_psi[i] = 60. * np.rad2deg(max_psi);
-print(f"{'N':>4} {'Nv':>8} {'Nf':>8} "
-      f"{'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}");
-print("-" * 68);
-for i in range(len(Nsubs)):
-    print(f"{Nsubs[i]:>4} {int(NVs[i]):>8} {int(NFs[i]):>8}"
-          f"{Es_vol[i]:>10.2e} {Es_area[i]:>10.2e}"
-          f"{MINs_psi[i]:>10.3f} {MAXs_psi[i]:>10.3f}");
+
+# True volume and surface area of unit sphere
+VOL_TRUE = 4 * np.pi / 3
+AREA_TRUE = 4 * np.pi
+
+nsub_max = 9
+NSUBs = np.arange(nsub_max)
+
+# ------------------------------------------------------------------
+# (1) Recursive subdivision of an icosahedron
+# ------------------------------------------------------------------
+print("\n" + "="*68)
+print("Recursive subdivision of an icosahedron")
+print(f"{'N':>4} {'Nv':>8} {'Nf':>8} {'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}")
+print("-" * 68)
+
+for nsub in NSUBs:
+    mesh = pv.Icosphere(radius=1.0, nsub=nsub)
+    verts = mesh.points
+    faces = mesh.regular_faces
+
+    nv = verts.shape[0]
+    nf = faces.shape[0]
+    vol_err = 1.0 - mesh.volume / VOL_TRUE
+    area_err = 1.0 - mesh.area / AREA_TRUE
+
+    min_psi, max_psi = spherical_edge_length_range(verts, faces)
+    min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
+    max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
+
+    print(f"{nsub:>4} {nv:>8} {nf:>8} "
+          f"{vol_err:>10.2e} {area_err:>10.2e} "
+          f"{min_psi_arcmin:>10.3f} {max_psi_arcmin:>10.3f}")
+
 # %%
 # # ! Triangulated regular geographic grid
-Lon_Res = 6*2**np.arange(nsub_max)+1;
-Lat_Res = 3*2**np.arange(nsub_max)+1;
-for i, (lon_res, lat_res) in enumerate(zip(Lon_Res, Lat_Res)):
-    regsph = pv.Sphere(radius=1.0, 
-                       theta_resolution=lat_res, phi_resolution=lon_res);
-    Verts = regsph.points;
-    Faces = regsph.regular_faces;
-    NVs[i] = Verts.shape[0];
-    NFs[i] = Faces.shape[0];
-    Es_vol[i]  = 1. - regsph.volume/vol;
-    Es_area[i] = 1. - regsph.area/area;
-    min_psi, max_psi = spherical_edge_length_range(Verts, Faces);
-    MINs_psi[i] = 60. * np.rad2deg(min_psi); # in arc-min
-    MAXs_psi[i] = 60. * np.rad2deg(max_psi);
-print(f"{'N':>4} {'Nv':>8} {'Nf':>8} "
-      f"{'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}");
-print("-" * 68);
-for i in range(len(Nsubs)):
-    print(f"{Nsubs[i]:>4} {int(NVs[i]):>8} {int(NFs[i]):>8}"
-          f"{Es_vol[i]:>10.2e} {Es_area[i]:>10.2e}"
-          f"{MINs_psi[i]:>10.3f} {MAXs_psi[i]:>10.3f}");
+
+# ------------------------------------------------------------------
+# (2) Triangulated regular geographic grid
+# ------------------------------------------------------------------
+print("\n" + "="*68)
+print("Triangulated Regular Geographic Grid")
+print(f"{'N':>4} {'Nv':>8} {'Nf':>8} {'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}")
+print("-" * 68)
+
+Lon_Res = 5 * (2 ** NSUBs)
+Lat_Res = (2 ** (NSUBs + 1)) + 2
+
+for i, nsub in enumerate(NSUBs):
+    theta_res = Lon_Res[i]
+    phi_res   = Lat_Res[i]
+    mesh = pv.Sphere(radius=1.0, theta_resolution=theta_res, phi_resolution=phi_res)
+    verts = mesh.points
+    faces = mesh.regular_faces
+
+    nv = verts.shape[0]
+    nf = faces.shape[0]
+    vol_err = 1.0 - mesh.volume / VOL_TRUE
+    area_err = 1.0 - mesh.area / AREA_TRUE
+
+    min_psi, max_psi = spherical_edge_length_range(verts, faces)
+    min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
+    max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
+
+    print(f"{nsub:>4} {nv:>8} {nf:>8} "
+          f"{vol_err:>10.2e} {area_err:>10.2e} "
+          f"{min_psi_arcmin:>10.3f} {max_psi_arcmin:>10.3f}")
+
 # %%
 # # ! Plot
-pl = pv.Plotter(shape=(2, 3), image_scale=3);
-for i, nsub in enumerate([1, 2, 3]):
-    icosph = pv.Icosphere(nsub=nsub);
-    icosph_with_area = icosph.compute_cell_sizes();
-    areas = icosph_with_area['Area'];
-    area_percent = 100 * areas / areas.sum();
-    scalar_name = f'Area (%), n={nsub}';
-    icosph_with_area[scalar_name] = area_percent;
-    pl.subplot(0, i);
-    sargs = dict(title=scalar_name, title_font_size=14, label_font_size=12, 
-                 n_labels=3, position_y=0.05, fmt='%.2f');
-    pl.add_mesh(icosph_with_area, scalars=scalar_name, 
-                scalar_bar_args=sargs, cmap='viridis'); # viridis, plasma, magma, turbo
-    pl.camera.Zoom(1.25);
-pl.show();
-pl.screenshot("icosphere_geographic");
+
+pl = pv.Plotter(shape=(2, 3), image_scale=3)
+pickNs = [2, 3, 4]
+
+# Top row: Icosphere
+for col, nsub in enumerate(pickNs):
+    mesh = pv.Icosphere(radius=1.0, nsub=nsub)
+    mesh = mesh.compute_cell_sizes()
+    areas = mesh['Area']
+    mesh[f'Area (%) nsub={nsub}'] = 100 * areas / areas.sum()
+    pl.subplot(0, col)
+    pl.add_mesh(mesh, scalars=f'Area (%) nsub={nsub}', cmap='viridis',
+                scalar_bar_args=dict(title_font_size=14, label_font_size=12,
+                                     n_labels=3, position_y=0.05, fmt='%.3f'))
+    pl.camera.zoom(1.25)
+
+# Bottom row: Geographic grid
+for col, nsub in enumerate(pickNs):
+    mesh = pv.Sphere(radius=1.0,
+                     theta_resolution=Lon_Res[nsub],
+                     phi_resolution=Lat_Res[nsub])
+    mesh = mesh.compute_cell_sizes()
+    areas = mesh['Area']
+    mesh[f'Area (%) level={nsub}'] = 100 * areas / areas.sum()
+    pl.subplot(1, col)
+    pl.add_mesh(mesh, scalars=f'Area (%) level={nsub}', cmap='viridis',
+                scalar_bar_args=dict(title_font_size=14, label_font_size=12,
+                                     n_labels=3, position_y=0.05, fmt='%.3f'))
+    pl.camera.zoom(1.25)
+
+pl.show()
+pl.screenshot("icosphere_geographic.png");

@@ -251,32 +251,35 @@ def gsphere(xp, yp, zp, xq, yq, zq, a, rho):
 
 def spherical_edge_length_range(verts, faces):
     """
-    Compute the minimum and maximum spherical (great-circle) edge lengths in a triangular mesh 
-    with vertices on the unit sphere.
+    Compute the minimum and maximum great-circle (spherical) edge lengths in a triangular mesh 
+    whose vertices lie on the unit sphere.
 
-    Extracts all unique undirected edges from the triangular faces, computes the angular 
-    distance (in radians) between each pair of connected vertices, and returns the smallest 
-    and largest such distances.
+    The function extracts all unique undirected edges from the triangular faces, computes the 
+    angular distance (in radians) between each pair of connected vertices using the great-circle 
+    distance formula, and returns the smallest and largest such distances.
 
     Parameters
     ----------
     verts : np.ndarray of shape (V, 3)
-        Vertex coordinates on the **unit sphere** (each row is a 3D unit vector).
+        Coordinates of mesh vertices, assumed to lie on the **unit sphere** 
+        (i.e., each row is a 3D unit vector with norm 1).
     faces : np.ndarray of shape (F, 3)
-        Triangular face definitions as integer indices into `verts`.
+        Triangular face definitions, where each row contains three integer indices 
+        referencing rows in `verts`.
 
     Returns
     -------
     min_dist : float
-        Minimum spherical edge length in radians.
+        Minimum spherical edge length (in radians).
     max_dist : float
-        Maximum spherical edge length in radians.
+        Maximum spherical edge length (in radians).
 
     Notes
     -----
-    - Assumes input vertices are normalized (||v|| = 1). If not, normalize before calling.
-    - Dot products are clamped to [-1, 1] to ensure numerical stability in arccos.
-    - Only unique edges are considered (each edge counted once, regardless of face sharing).
+    - Input vertices must be normalized (||v|| = 1). If they are not, normalize them before calling.
+    - To avoid numerical instability in trigonometric computations, chord lengths are clamped 
+      to the valid range [0, 2] before converting to angular distances via 
+      `dist = 2 * arcsin(chord / 2)`.
     """
     edges = np.vstack([
         faces[:, [0, 1]],
@@ -289,7 +292,7 @@ def spherical_edge_length_range(verts, faces):
     v1 = verts[edges_unique[:, 1]];
     # dots = np.einsum('ij,ij->i', v0, v1);
     # dots = np.clip(dots, -1.0, 1.0)
-    # dist = np.arccos(dots)
+    # dist = np.arccos(dots) # Unstable for very small edge
     chord = np.linalg.norm(v1 - v0, axis=1)
     chord = np.clip(chord, 0.0, 2.0)
     dist = 2.0 * np.arcsin(0.5 * chord)
