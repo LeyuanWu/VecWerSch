@@ -156,7 +156,37 @@ def _compute_gravity_numba(
 
 
 def VecWerSch_numba(P, Q, If, rho):
-    # Constants (float64)
+    """
+    Computes the gravitational potential (and optionally field and gradient) at multiple observation points 
+    due to a homogeneous polyhedral body using the vectorized formulation of the Werner-Schmidt method.
+
+    This implementation follows the analytical expressions derived from potential theory for a constant-density 
+    polyhedron. It leverages efficient NumPy vectorization to compute contributions from all faces and edges 
+    simultaneously across many observation points.
+
+    Reference:
+    Werner, R.A., Scheeres, D.J. Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation    representations of asteroid 4769 Castalia. Celestial Mech Dyn Astr 65, 313-344 (1996). https://doi.org/10.1007/BF00053511
+
+    Args:
+        P (numpy.ndarray): Array of shape (M, 3) containing the Cartesian coordinates [x, y, z] 
+                           of M observation (computation) points where the gravity field is evaluated.
+        Q (numpy.ndarray): Array of shape (Nv, 3) listing the 3D coordinates of N unique vertices 
+                           defining the polyhedron geometry.
+        If (numpy.ndarray): Integer array of shape (Nf, 3) specifying the vertex indices of F triangular faces. 
+                            Each row [i, j, k] corresponds to a face with vertices Q[i], Q[j], Q[k], 
+                            oriented consistently (outward-pointing normal via right-hand rule).
+        rho (float): Constant density of the polyhedron in kg/m³. 
+                                     
+    Returns:
+        V (numpy.ndarray) : Gravitational Potential (GP) at each point in P.
+        gx, gy, gz (numpy.ndarray) : Gravitational Vector (GV).
+        Txx, Tyy, Tzz, Txy, Txz, Tyz (numpy.ndarray): Gravity Gradient Tensor (GGT)
+
+    Units:
+        length in km, density in kg/m^3,
+        GP in m^2/s^2, GV in mGal, GGT in 1e-9/s^2 (Eotvos)
+    """
+
     G = 6.67430e-11
     km2m = 1.e3
     si2mg = 1.e5
