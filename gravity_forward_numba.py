@@ -51,6 +51,7 @@ def Faces2Edges(Faces):
 
     return Edges;
 
+
 @njit(parallel=True, fastmath=True, nogil=True)
 def _compute_gravity_numba(
     P,
@@ -254,69 +255,140 @@ def VecWerSch_numba(P, Q, If, rho):
 
 
 @njit(cache=True, fastmath=True)
-def _great_circle_distance(v0, v1):
-    """
-    Calculate great-circle distance between two points on a unit sphere.
-    Internal helper function optimized for numba execution.
-    
-    Parameters:
-        v0: 3D coordinate array (x, y, z) for the first point
-        v1: 3D coordinate array (x, y, z) for the second point
-    
-    Returns:
-        float: Great-circle distance (in radians) between v0 and v1
-    """
-    dx = v1[0] - v0[0]
-    dy = v1[1] - v0[1]
-    dz = v1[2] - v0[2]
-    chord_sq = dx*dx + dy*dy + dz*dz
-    half_chord_sq = chord_sq * 0.25
-    
-    # Numerical stability handling for edge cases
-    if half_chord_sq < 1e-16:
-        return np.sqrt(chord_sq)  # Approximate with chord length for near-zero distance
-    elif half_chord_sq > 0.9999999999999999:
-        return np.pi
-    else:
-        return 2.0 * np.arcsin(np.sqrt(half_chord_sq))  # Standard great-circle formula
-
-@njit(cache=True, fastmath=True)
 def spherical_edge_length_range(verts, faces):
     """
-    Compute minimum and maximum great-circle edge lengths of a spherical triangular mesh.
-    Optimized with numba njit for maximum performance (cache + fastmath enabled).
+    Compute min and max great-circle edge lengths (in radians) of a spherical triangular mesh.
     
     Parameters:
-        verts: (N, 3) numpy array, vertex coordinates on unit sphere
-        faces: (M, 3) numpy array, vertex indices for triangular faces
+        verts: (N, 3) float array, vertex coordinates (assumed normalized to unit sphere)
+        faces: (M, 3) int array, vertex indices for triangular faces
     
     Returns:
-        min_dist: float, minimum great-circle edge length (radians)
-        max_dist: float, maximum great-circle edge length (radians)
+        min_dist: float, minimum edge length (radians)
+        max_dist: float, maximum edge length (radians)
     
     Raises:
-        ValueError: If faces array is empty (no edges to process)
+        ValueError: If faces array is empty.
     """
-    num_faces = faces.shape[0]
-    if num_faces == 0:
-        raise ValueError("Faces array is empty - no edges to calculate distances for!")
+    if faces.size == 0:
+        raise ValueError("Faces array is empty - no edges to process!")
     
-    # Initialize min/max with distance of first edge (faces[0], i0-i1)
-    i0, i1, _ = faces[0]
-    min_dist = max_dist = _great_circle_distance(verts[i0], verts[i1])
-    
-    # Iterate through all faces and their edges
-    for face_idx in range(num_faces):
-        vi0, vi1, vi2 = faces[face_idx]
-        
-        # Process all three edges of the triangular face
-        for v_start, v_end in [(vi0, vi1), (vi1, vi2), (vi2, vi0)]:
-            edge_dist = _great_circle_distance(verts[v_start], verts[v_end])
-            
-            # Update global min/max distances
-            if edge_dist < min_dist:
-                min_dist = edge_dist
-            if edge_dist > max_dist:
-                max_dist = edge_dist
-    
+    min_dist = np.inf
+    max_dist = -np.inf
+
+    for f in range(faces.shape[0]):
+        i0, i1, i2 = faces[f]
+        v0 = verts[i0]
+        v1 = verts[i1]
+        v2 = verts[i2]
+
+        # Edge 0-1
+        d = _great_circle_distance(v0, v1)
+        if d < min_dist: min_dist = d
+        if d > max_dist: max_dist = d
+
+        # Edge 1-2
+        d = _great_circle_distance(v1, v2)
+        if d < min_dist: min_dist = d
+        if d > max_dist: max_dist = d
+
+        # Edge 2-0
+        d = _great_circle_distance(v2, v0)
+        if d < min_dist: min_dist = d
+        if d > max_dist: max_dist = d
+
     return min_dist, max_dist
+
+
+@njit(fastmath=True)
+def _great_circle_distance(a, b):
+    cross_norm = np.sqrt(
+        (a[1]*b[2] - a[2]*b[1])**2 +
+        (a[2]*b[0] - a[0]*b[2])**2 +
+        (a[0]*b[1] - a[1]*b[0])**2
+    )
+    dot = a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
+    return np.arctan2(cross_norm, dot)
+
+
+def rotate_vector_and_tensor_to_ned(lon, lat, gx, gy, gz,
+                                    Txx, Txy, Txz, Tyy, Tyz, Tzz):
+    """
+    Rotate gravity vector and gravity gradient tensor (GGT) from ECEF (Earth-Centered,
+    Earth-Fixed) Cartesian coordinates to local North-East-Down (NED) frame.
+
+    Parameters
+    ----------
+    lon, lat : array_like, shape (N,)
+        Longitude and latitude of observation points **in radians**.
+    gx, gy, gz : array_like, shape (N,)
+        Gravity vector components in ECEF.
+    Txx, Txy, Txz, Tyy, Tyz, Tzz : array_like, shape (N,)
+        Independent components of the GGT in ECEF (symmetric tensor).
+
+    Returns
+    -------
+    gN, gE, gD : ndarray, shape (N,)
+        Gravity vector in local NED frame.
+    TNN, TNE, TND, TEE, TED, TDD : ndarray, shape (N,)
+        Independent components of the GGT in local NED frame.
+    """
+    lon = np.asarray(lon)
+    lat = np.asarray(lat)
+    N = lon.shape[0]
+
+    # Precompute trigonometric values
+    sin_lat = np.sin(lat)
+    cos_lat = np.cos(lat)
+    sin_lon = np.sin(lon)
+    cos_lon = np.cos(lon)
+
+    # Build rotation matrix R: from ECEF to NED
+    # R[i, :, :] is 3x3 matrix for point i
+    R = np.empty((N, 3, 3), dtype=np.float64)
+
+    # North row
+    R[:, 0, 0] = -sin_lat * cos_lon   # d(North)/dX
+    R[:, 0, 1] = -sin_lat * sin_lon   # d(North)/dY
+    R[:, 0, 2] =  cos_lat             # d(North)/dZ
+
+    # East row
+    R[:, 1, 0] = -sin_lon             # d(East)/dX
+    R[:, 1, 1] =  cos_lon             # d(East)/dY
+    R[:, 1, 2] =  0.0                 # d(East)/dZ
+
+    # Down row
+    R[:, 2, 0] = -cos_lat * cos_lon   # d(Down)/dX
+    R[:, 2, 1] = -cos_lat * sin_lon   # d(Down)/dY
+    R[:, 2, 2] = -sin_lat             # d(Down)/dZ
+
+    # --- Rotate gravity vector ---
+    g_ecef = np.stack([gx, gy, gz], axis=1)  # (N, 3)
+    g_ned = np.einsum('nij,nj->ni', R, g_ecef)  # (N, 3)
+    gN, gE, gD = g_ned[:, 0], g_ned[:, 1], g_ned[:, 2]
+
+    # --- Rotate GGT tensor: T_ned = R @ T_ecef @ R^T ---
+    # Assemble full tensor (N, 3, 3)
+    T_ecef = np.empty((N, 3, 3), dtype=np.float64)
+    T_ecef[:, 0, 0] = Txx
+    T_ecef[:, 0, 1] = Txy
+    T_ecef[:, 0, 2] = Txz
+    T_ecef[:, 1, 0] = Txy
+    T_ecef[:, 1, 1] = Tyy
+    T_ecef[:, 1, 2] = Tyz
+    T_ecef[:, 2, 0] = Txz
+    T_ecef[:, 2, 1] = Tyz
+    T_ecef[:, 2, 2] = Tzz
+
+    # Perform rotation: T' = R T R^T
+    T_ned = np.einsum('nij,njk,nlk->nil', R, T_ecef, R)  # Note: R^T -> index order (nlk)
+
+    # Extract unique components (tensor is symmetric)
+    TNN = T_ned[:, 0, 0]
+    TNE = T_ned[:, 0, 1]
+    TND = T_ned[:, 0, 2]
+    TEE = T_ned[:, 1, 1]
+    TED = T_ned[:, 1, 2]
+    TDD = T_ned[:, 2, 2]
+
+    return gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD

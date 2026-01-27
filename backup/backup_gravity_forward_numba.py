@@ -221,3 +221,73 @@ def VecWerSch_numba(P, Q, If, rho):
     )
 
     return V.astype(np.float64)  # Match original output type
+
+
+@njit(cache=True, fastmath=True)
+def _great_circle_distance(v0, v1):
+    """
+    Calculate great-circle distance between two points on a unit sphere.
+    Internal helper function optimized for numba execution.
+    
+    Parameters:
+        v0: 3D coordinate array (x, y, z) for the first point
+        v1: 3D coordinate array (x, y, z) for the second point
+    
+    Returns:
+        float: Great-circle distance (in radians) between v0 and v1
+    """
+    dx = v1[0] - v0[0]
+    dy = v1[1] - v0[1]
+    dz = v1[2] - v0[2]
+    chord_sq = dx*dx + dy*dy + dz*dz
+    half_chord_sq = chord_sq * 0.25
+    
+    # Numerical stability handling for edge cases
+    if half_chord_sq < 1e-16:
+        return np.sqrt(chord_sq)  # Approximate with chord length for near-zero distance
+    elif half_chord_sq > 0.9999999999999999:
+        return np.pi
+    else:
+        return 2.0 * np.arcsin(np.sqrt(half_chord_sq))  # Standard great-circle formula
+
+
+@njit(cache=True, fastmath=True)
+def spherical_edge_length_range(verts, faces):
+    """
+    Compute minimum and maximum great-circle edge lengths of a spherical triangular mesh.
+    Optimized with numba njit for maximum performance (cache + fastmath enabled).
+    
+    Parameters:
+        verts: (N, 3) numpy array, vertex coordinates on unit sphere
+        faces: (M, 3) numpy array, vertex indices for triangular faces
+    
+    Returns:
+        min_dist: float, minimum great-circle edge length (radians)
+        max_dist: float, maximum great-circle edge length (radians)
+    
+    Raises:
+        ValueError: If faces array is empty (no edges to process)
+    """
+    num_faces = faces.shape[0]
+    if num_faces == 0:
+        raise ValueError("Faces array is empty - no edges to calculate distances for!")
+    
+    # Initialize min/max with distance of first edge (faces[0], i0-i1)
+    i0, i1, _ = faces[0]
+    min_dist = max_dist = _great_circle_distance(verts[i0], verts[i1])
+    
+    # Iterate through all faces and their edges
+    for face_idx in range(num_faces):
+        vi0, vi1, vi2 = faces[face_idx]
+        
+        # Process all three edges of the triangular face
+        for v_start, v_end in [(vi0, vi1), (vi1, vi2), (vi2, vi0)]:
+            edge_dist = _great_circle_distance(verts[v_start], verts[v_end])
+            
+            # Update global min/max distances
+            if edge_dist < min_dist:
+                min_dist = edge_dist
+            if edge_dist > max_dist:
+                max_dist = edge_dist
+    
+    return min_dist, max_dist
