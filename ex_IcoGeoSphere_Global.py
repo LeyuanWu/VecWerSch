@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pyvista as pv
 import time
 from gravity_forward_numba import gsphere, VecWerSch_numba, rotate_vec_ten_ecef2ned
+
 # %%
 # Earth parameters (all in km and kg/m³)
 R_earth = 6371.393     # mean Earth radius [km]
@@ -60,7 +61,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 8
+nsub_max = 10
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -72,6 +73,10 @@ all_err_ico = []
 all_err_geo = []
 all_time_ico = []
 all_time_geo = []
+
+# Containers for reference values per altitude
+ref_values = []
+
 # %%
 # Loop over each altitude
 for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
@@ -165,6 +170,10 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
     all_err_geo.append(err_geo)
     all_time_ico.append(time_ico)
     all_time_geo.append(time_geo)
+    
+    # Collect reference values for this altitude
+    ref_values.append({field: np.mean(ref) for field, ref in zip(fields, ref_arrays)})
+
 # %%
 # Generate DataFrames and print tables
 for i, h in enumerate(altitudes):
@@ -184,14 +193,22 @@ for i, h in enumerate(altitudes):
     print("="*80)
     print(df_geo.to_string(float_format="{:.2e}".format))
 
+# Print reference values table
+print("\n" + "="*80)
+print("Reference Values at Different Altitudes")
+print("GP in m^2/s^2, GV in mGal, GGT in Eotvos")
+print("="*80)
+df_refs = pd.DataFrame(ref_values, index=altitudes)
+print(df_refs.to_string(float_format="{:8.2f}".format))
+
 # %%
 # Plot: 2x2 subplots for each altitude — independent axes, internal legends
 rep_fields = ['V', 'gD', 'TNN', 'TDD']
 latex_labels = {
-    'V': r' $ V $ ',
-    'gD': r' $ g_D $ ',
-    'TNN': r' $ T_{NN} $ ',
-    'TDD': r' $ T_{DD} $ '
+    'V': r'  $  V  $  ',
+    'gD': r'  $  g_D  $  ',
+    'TNN': r'  $  T_{NN}  $  ',
+    'TDD': r'  $  T_{DD}  $  '
 }
 colors = {
     'V': 'tab:red',
@@ -231,7 +248,7 @@ for i, h in enumerate(altitudes):
     # Labels and title
     ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
     ax.set_xlabel('Number of faces', fontsize=11)
-    ax.set_ylabel('Relative  $ L_2 $  error', fontsize=11)
+    ax.set_ylabel('Relative   $  L_2  $   error', fontsize=11)
     ax.grid(True, which="both", linestyle=':', linewidth=0.7, alpha=0.8)
     
     # Legend inside subplot (compact)
