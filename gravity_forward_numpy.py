@@ -176,78 +176,7 @@ def VecWerSch(P, Q, If, rho):
     Txy =  si2eot* G * rho * (Txy_e - Txy_f);
     Txz =  si2eot* G * rho * (Txz_e - Txz_f);
     Tyz =  si2eot* G * rho * (Tyz_e - Tyz_f);
-    return V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz;
-
-def gsphere(xp, yp, zp, xq, yq, zq, a, rho):
-    """Forward modelling gravity fields due to a sphere with uniform density
-
-    Args:
-        <xp, yp, zp> (numpy array)      : computation points
-        <xq, yq, zq> (float)            : center of the sphere
-        a (float)                       : radius of the sphere
-        rho (float)                     : density of the sphere
-        
-    Units:
-    G in m^3 kg^{-1} s^{-2}
-    length in km
-    density in kg/m^3
-    gravity potential in m^2/s^2
-    GV in mGal
-    GGT in 1e-9/s^2 (Eotvos)
-
-    Returns:
-        dV                              : GP  in m^2/s^2
-        gx, gy, gz                      : GV  in mGal
-        Txx, Tyy, Tzz, Txy, Txz, Tyz    : GGT in Eotvos
-    """
-    G           = 6.67430e-11;
-    km2m        = 1e3;
-    si2mg       = 1e5;          # m/s^2 to mGal
-    si2eot      = 1e9;          # 1/s^2 to 10^{-9}/s^2
-    M           = rho*4/3*np.pi*a**3;
-    xqp         = xp-xq;
-    yqp         = yp-yq;
-    zqp         = zp-zq;
-    r           = np.sqrt(xqp**2 + yqp**2 + zqp**2);
-    r2          = r**2;
-    r3          = r**3;
-    r5          = r**5;
-    ma_ou       = (r>=a);
-    ma_in       = np.logical_not(ma_ou);
-    
-    ######## * Init
-    dV = np.zeros_like(xp);
-    gx = np.zeros_like(xp);   gy = np.zeros_like(xp);  gz = np.zeros_like(xp);
-    Txx = np.zeros_like(xp); Tyy = np.zeros_like(xp); Tzz = np.zeros_like(xp);
-    Txy = np.zeros_like(xp); Txz = np.zeros_like(xp); Tyz = np.zeros_like(xp);
-    ######## * Outside the sphere
-    xqp_ou = xqp[ma_ou]; yqp_ou = yqp[ma_ou]; zqp_ou = zqp[ma_ou];
-    r_ou  = r[ma_ou];  r2_ou = r2[ma_ou];
-    r3_ou = r3[ma_ou]; r5_ou = r5[ma_ou];
-    
-    dV[ma_ou]     =   km2m**2 * G*M/r_ou;
-    gx[ma_ou]     = - km2m*si2mg * G*M * xqp_ou/r3_ou;
-    gy[ma_ou]     = - km2m*si2mg * G*M * yqp_ou/r3_ou;
-    gz[ma_ou]     = - km2m*si2mg * G*M * zqp_ou/r3_ou;
-    Txx[ma_ou]    = - si2eot * G*M * (r2_ou-3*xqp_ou**2)/r5_ou;
-    Tyy[ma_ou]    = - si2eot * G*M * (r2_ou-3*yqp_ou**2)/r5_ou;
-    Tzz[ma_ou]    = - si2eot * G*M * (r2_ou-3*zqp_ou**2)/r5_ou;
-    Txy[ma_ou]    =   si2eot * G*M * (3*xqp_ou*yqp_ou)/r5_ou;
-    Txz[ma_ou]    =   si2eot * G*M * (3*xqp_ou*zqp_ou)/r5_ou;
-    Tyz[ma_ou]    =   si2eot * G*M * (3*yqp_ou*zqp_ou)/r5_ou;
-    ######## * Inside the sphere
-    dV[ma_in]     =   km2m**2 * G*M* (3*a**2-r2[ma_in])/(2*a**3);
-    gx[ma_in]     = - km2m*si2mg * G*M * xqp[ma_in]/a**3;
-    gy[ma_in]     = - km2m*si2mg * G*M * yqp[ma_in]/a**3;
-    gz[ma_in]     = - km2m*si2mg * G*M * zqp[ma_in]/a**3;
-    Txx[ma_in]    = - si2eot * G*M/a**3;
-    Tyy[ma_in]    = - si2eot * G*M/a**3;
-    Tzz[ma_in]    = - si2eot * G*M/a**3;
-    Txy[ma_in]    =   0;
-    Txz[ma_in]    =   0;
-    Tyz[ma_in]    =   0;
-    
-    return dV, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz;
+    return V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz;
 
 def spherical_edge_length_range(verts, faces):
     """

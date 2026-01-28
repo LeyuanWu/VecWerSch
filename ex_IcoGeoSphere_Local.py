@@ -5,8 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
-from gravity_forward_numpy import gsphere
-from gravity_forward_numba import VecWerSch_numba
+from gravity_forward_numba import gsphere, VecWerSch_numba
 # %%
 # Sphere parameters
 xc, yc, zc = 0, 0, 2
@@ -22,14 +21,13 @@ Z2d = z0 * np.ones(X2d.shape)
 P = np.column_stack((X2d.ravel(), Y2d.ravel(), Z2d.ravel()))
 
 # Analytical reference solution
-V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Tyy_ref, Tzz_ref, Txy_ref, Txz_ref, Tyz_ref = \
+V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Txy_ref, Txz_ref, Tyy_ref, Tyz_ref, Tzz_ref = \
     gsphere(P[:,0], P[:,1], P[:,2], xc, yc, zc, a, rho)
-
-fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Tyy', 'Tzz', 'Txy', 'Txz', 'Tyz']
-ref_arrays = [V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Tyy_ref, Tzz_ref, Txy_ref, Txz_ref, Tyz_ref]
+fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Txy', 'Txz', 'Tyy', 'Tyz', 'Tzz']
+ref_arrays = [V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Txy_ref, Txz_ref, Tyy_ref, Tyz_ref, Tzz_ref]
 
 # Refinement settings
-nsub_max = 11
+nsub_max = 8
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -52,12 +50,12 @@ for idx, nsub in enumerate(NSUBs):
     faces_ico = mesh_ico.regular_faces
 
     t0 = time.time()
-    V_i, gx_i, gy_i, gz_i, Txx_i, Tyy_i, Tzz_i, Txy_i, Txz_i, Tyz_i = \
+    V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i = \
         VecWerSch_numba(P, verts_ico, faces_ico, rho)
     t_ico = time.time() - t0
     time_ico.append(t_ico)
     
-    cal_ico = [V_i, gx_i, gy_i, gz_i, Txx_i, Tyy_i, Tzz_i, Txy_i, Txz_i, Tyz_i]
+    cal_ico = [V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i]
     for field, ref, cal in zip(fields, ref_arrays, cal_ico):
         norm_ref = np.linalg.norm(ref)
         err = np.linalg.norm(cal - ref) / norm_ref
@@ -73,17 +71,16 @@ for idx, nsub in enumerate(NSUBs):
     faces_geo = mesh_geo.regular_faces
 
     t0 = time.time()
-    V_g, gx_g, gy_g, gz_g, Txx_g, Tyy_g, Tzz_g, Txy_g, Txz_g, Tyz_g = \
+    V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
         VecWerSch_numba(P, verts_geo, faces_geo, rho)
     t_geo = time.time() - t0
     time_geo.append(t_geo)
     
-    cal_geo = [V_g, gx_g, gy_g, gz_g, Txx_g, Tyy_g, Tzz_g, Txy_g, Txz_g, Tyz_g]
+    cal_geo = [V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g]
     for field, ref, cal in zip(fields, ref_arrays, cal_geo):
         norm_ref = np.linalg.norm(ref)
         err = np.linalg.norm(cal - ref) / norm_ref 
         err_geo[field].append(err)
-
 # %%
 # Create DataFrames including computation time
 df_ico = pd.DataFrame(err_ico, index=NSUBs)

@@ -5,13 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
-from gravity_forward_numpy import gsphere
-from gravity_forward_numba import VecWerSch_numba, rotate_vector_and_tensor_to_ned
-
+from gravity_forward_numba import gsphere, VecWerSch_numba, rotate_vec_ten_ecef2ned
 # %%
 # Earth parameters (all in km and kg/m³)
-R_earth = 6371.0      # mean Earth radius [km]
-rho_earth = 5514.0    # mean Earth density [kg/m³]
+R_earth = 6371.393     # mean Earth radius [km]
+rho_earth = 5520.0     # mean Earth density [kg/m³]
 
 # Sphere to model: homogeneous Earth
 xc, yc, zc = 0.0, 0.0, 0.0
@@ -24,7 +22,7 @@ obs_radii = [R_earth + h for h in altitudes]
 
 # Create observation points on spherical shells (lat/lon grid)
 dlat = dlon = 5.0  # degrees
-lat_vals = np.arange(-85, 85 + dlat, dlat)
+lat_vals = np.arange(-90, 90 + dlat, dlat)
 lon_vals = np.arange(-180, 180, dlon)
 
 # Store observation point arrays per altitude
@@ -43,13 +41,13 @@ for r_obs in obs_radii:
     P = np.column_stack((x_obs, y_obs, z_obs))
     P_list.append(P)
     
-    # Analytical solution for full sphere (Earth) — assumes inputs in km!
-    V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Tyy_ref, Tzz_ref, Txy_ref, Txz_ref, Tyz_ref = \
+    # Analytical solution for full sphere (Earth)
+    V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Txy_ref, Txz_ref, Tyy_ref, Tyz_ref, Tzz_ref = \
         gsphere(x_obs, y_obs, z_obs, xc, yc, zc, a, rho)
     
     # Transform reference arrays to NED
     gN_ref, gE_ref, gD_ref, TNN_ref, TNE_ref, TND_ref, TEE_ref, TED_ref, TDD_ref = \
-        rotate_vector_and_tensor_to_ned(
+        rotate_vec_ten_ecef2ned(
             lon_rad, lat_rad,
             gx_ref, gy_ref, gz_ref,
             Txx_ref, Txy_ref, Txz_ref,
@@ -74,7 +72,6 @@ all_err_ico = []
 all_err_geo = []
 all_time_ico = []
 all_time_geo = []
-
 # %%
 # Loop over each altitude
 for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
@@ -86,7 +83,6 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
     time_ico = []
     time_geo = []
     
-    # Compute lon and lat in radians for this altitude
     x_obs, y_obs, z_obs = P[:,0], P[:,1], P[:,2]
     r_obs = np.sqrt(x_obs**2 + y_obs**2 + z_obs**2)
     lat_rad = np.arcsin(z_obs / r_obs)
@@ -101,28 +97,31 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
         faces_ico = mesh_ico.regular_faces
 
         t0 = time.time()
-        results_ico = VecWerSch_numba(P, verts_ico, faces_ico, rho)
+        V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i = \
+            VecWerSch_numba(P, verts_ico, faces_ico, rho)
         t_ico = time.time() - t0
         time_ico.append(t_ico)
         
         # Transform numerical results to NED
         gN_ico, gE_ico, gD_ico, TNN_ico, TNE_ico, TND_ico, TEE_ico, TED_ico, TDD_ico = \
-            rotate_vector_and_tensor_to_ned(
+            rotate_vec_ten_ecef2ned(
                 lon_rad, lat_rad,
-                results_ico[1], results_ico[2], results_ico[3],
-                results_ico[4], results_ico[7], results_ico[8],
-                results_ico[5], results_ico[9], results_ico[6]
+                gx_i, gy_i, gz_i,
+                Txx_i, Txy_i, Txz_i,
+                Tyy_i, Tyz_i, Tzz_i
             )
         
-        cal_ico = [results_ico[0], gN_ico, gE_ico, gD_ico,
+        cal_ico = [V_i, gN_ico, gE_ico, gD_ico,
                    TNN_ico, TNE_ico, TND_ico, TEE_ico, TED_ico, TDD_ico]
         
         for field, ref, cal in zip(fields, ref_arrays, cal_ico):
-            norm_ref = np.linalg.norm(ref)
-            if norm_ref < 1.e-10:
-                err = np.linalg.norm(cal)
+            rms_ref = np.linalg.norm(ref)/np.sqrt(ref.size)
+            rms_cal = np.linalg.norm(cal)/np.sqrt(cal.size)
+            rms_dif = np.linalg.norm(cal - ref)/np.sqrt(cal.size)
+            if rms_ref < 1.e-8:
+                err = rms_dif
             else:
-                err = np.linalg.norm(cal - ref) / norm_ref
+                err = rms_dif / rms_ref
             err_ico[field].append(err)
 
         # --- Geographic Grid ---
@@ -135,35 +134,37 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
         faces_geo = mesh_geo.regular_faces
 
         t0 = time.time()
-        results_geo = VecWerSch_numba(P, verts_geo, faces_geo, rho)
+        V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
+            VecWerSch_numba(P, verts_geo, faces_geo, rho)
         t_geo = time.time() - t0
         time_geo.append(t_geo)
         
         # Transform numerical results to NED
         gN_geo, gE_geo, gD_geo, TNN_geo, TNE_geo, TND_geo, TEE_geo, TED_geo, TDD_geo = \
-            rotate_vector_and_tensor_to_ned(
+            rotate_vec_ten_ecef2ned(
                 lon_rad, lat_rad,
-                results_geo[1], results_geo[2], results_geo[3],
-                results_geo[4], results_geo[7], results_geo[8],
-                results_geo[5], results_geo[9], results_geo[6]
+                gx_g, gy_g, gz_g,
+                Txx_g, Txy_g, Txz_g,
+                Tyy_g, Tyz_g, Tzz_g
             )
         
-        cal_geo = [results_geo[0], gN_geo, gE_geo, gD_geo,
+        cal_geo = [V_g, gN_geo, gE_geo, gD_geo,
                    TNN_geo, TNE_geo, TND_geo, TEE_geo, TED_geo, TDD_geo]
         
         for field, ref, cal in zip(fields, ref_arrays, cal_geo):
-            norm_ref = np.linalg.norm(ref)
-            if norm_ref < 1.e-10:
-                err = np.linalg.norm(cal)
+            rms_ref = np.linalg.norm(ref)/np.sqrt(ref.size)
+            rms_cal = np.linalg.norm(cal)/np.sqrt(cal.size)
+            rms_dif = np.linalg.norm(cal - ref)/np.sqrt(cal.size)
+            if rms_ref < 1.e-8:
+                err = rms_dif
             else:
-                err = np.linalg.norm(cal - ref) / norm_ref
+                err = rms_dif / rms_ref
             err_geo[field].append(err)
     
     all_err_ico.append(err_ico)
     all_err_geo.append(err_geo)
     all_time_ico.append(time_ico)
     all_time_geo.append(time_geo)
-
 # %%
 # Generate DataFrames and print tables
 for i, h in enumerate(altitudes):
@@ -185,14 +186,23 @@ for i, h in enumerate(altitudes):
 
 # %%
 # Plot: 2x2 subplots for each altitude — independent axes, internal legends
-rep_fields = ['V', 'gD', 'TDD']
-latex_labels = {'V': r' $ V $ ', 'gD': r' $ g_D $ ', 'TDD': r' $ T_{DD} $ '}
-colors = {'V': 'tab:red', 'gD': 'tab:blue', 'TDD': 'tab:green'}
+rep_fields = ['V', 'gD', 'TNN', 'TDD']
+latex_labels = {
+    'V': r' $ V $ ',
+    'gD': r' $ g_D $ ',
+    'TNN': r' $ T_{NN} $ ',
+    'TDD': r' $ T_{DD} $ '
+}
+colors = {
+    'V': 'tab:red',
+    'gD': 'tab:blue',
+    'TNN': 'tab:orange',
+    'TDD': 'tab:green'
+}
 
-fig, axes = plt.subplots(2, 2, figsize=(13, 10))
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 axes = axes.flatten()
 
-# Approximate number of faces for x-axis (icosphere face count ～ 20 * 4^nsub)
 N_faces = 20 * (4 ** NSUBs)
 
 for i, h in enumerate(altitudes):
@@ -220,13 +230,13 @@ for i, h in enumerate(altitudes):
     
     # Labels and title
     ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
-    ax.set_xlabel('Approx. number of faces', fontsize=11)
+    ax.set_xlabel('Number of faces', fontsize=11)
     ax.set_ylabel('Relative  $ L_2 $  error', fontsize=11)
     ax.grid(True, which="both", linestyle=':', linewidth=0.7, alpha=0.8)
     
     # Legend inside subplot (compact)
-    ax.legend(fontsize=9, loc='lower left', frameon=True, fancybox=True, shadow=False, ncol=1)
+    ax.legend(fontsize=9, loc='lower left', frameon=True, fancybox=True, shadow=False, ncol=2)
 
 plt.tight_layout(pad=2.5)
-plt.savefig("IcoGeoSphere_SphericalShells_NED.png", dpi=300, bbox_inches='tight')
+plt.savefig("IcoGeoSphere_SphericalShells.png", dpi=300, bbox_inches='tight')
 plt.show()
