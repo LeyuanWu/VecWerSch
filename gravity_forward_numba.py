@@ -326,7 +326,7 @@ def VecWerSch_numba(P, Q, If, rho):
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(fastmath=True)
 def spherical_edge_length_range(verts, faces):
     """
     Compute min and max great-circle edge lengths (in radians) of a spherical triangular mesh.

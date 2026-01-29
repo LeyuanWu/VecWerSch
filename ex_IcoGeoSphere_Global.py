@@ -22,9 +22,15 @@ altitudes = [0.001, 1.0, 10.0, 100.0]  # now explicitly in km
 obs_radii = [R_earth + h for h in altitudes]
 
 # Create observation points on spherical shells (lat/lon grid)
-dlat = dlon = 5.0  # degrees
+dlat = dlon = 2.0  # degrees
 lat_vals = np.arange(-90, 90 + dlat, dlat)
 lon_vals = np.arange(-180, 180, dlon)
+
+# Observation grid size (same for all altitudes)
+nlat_obs = len(lat_vals)
+nlon_obs = len(lon_vals)
+N_obs = nlat_obs * nlon_obs
+print(f"\nObservation grid: {nlat_obs} lat x {nlon_obs} lon = {N_obs} points per altitude\n")
 
 # Store observation point arrays per altitude
 P_list = []
@@ -61,7 +67,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 10
+nsub_max = 11
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -184,12 +190,14 @@ for i, h in enumerate(altitudes):
     df_geo['Time (s)'] = all_time_geo[i]
 
     print("\n" + "="*80)
-    print(f"Altitude = {h:g} km — Icosphere vs Analytical Earth")
+    print(f"Altitude = {h:g} km — Icosphere vs Analytical Earth "
+          f"({nlat_obs} x {nlon_obs} = {N_obs} obs pts)")
     print("="*80)
     print(df_ico.to_string(float_format="{:.2e}".format))
 
     print("\n" + "="*80)
-    print(f"Altitude = {h:g} km — Geographic Grid vs Analytical Earth")
+    print(f"Altitude = {h:g} km — Geographic Grid vs Analytical Earth "
+          f"({nlat_obs} x {nlon_obs} = {N_obs} obs pts)")
     print("="*80)
     print(df_geo.to_string(float_format="{:.2e}".format))
 
