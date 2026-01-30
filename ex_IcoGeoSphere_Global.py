@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import pyvista as pv
 import time
 from gravity_forward_numba import gsphere, VecWerSch_numba, rotate_vec_ten_ecef2ned
-
 # %%
 # Earth parameters (all in km and kg/m³)
 R_earth = 6371.393     # mean Earth radius [km]
@@ -67,7 +66,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 11
+nsub_max = 8
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -208,30 +207,19 @@ print("GP in m^2/s^2, GV in mGal, GGT in Eotvos")
 print("="*80)
 df_refs = pd.DataFrame(ref_values, index=altitudes)
 print(df_refs.to_string(float_format="{:8.2f}".format))
-
 # %%
-# Plot: 2x2 subplots for each altitude — independent axes, internal legends
+# Plot representative fields for each altitude
 rep_fields = ['V', 'gD', 'TNN', 'TDD']
-latex_labels = {
-    'V': r'  $  V  $  ',
-    'gD': r'  $  g_D  $  ',
-    'TNN': r'  $  T_{NN}  $  ',
-    'TDD': r'  $  T_{DD}  $  '
-}
-colors = {
-    'V': 'tab:red',
-    'gD': 'tab:blue',
-    'TNN': 'tab:orange',
-    'TDD': 'tab:green'
-}
+latex_labels = {'V': r'$V$', 'gD': r'$g_D$', 'TNN': r'$T_{NN}$', 'TDD': r'$T_{DD}$'}
+colors = {'V': 'tab:red', 'gD': 'tab:blue', 'TNN': 'tab:orange', 'TDD': 'tab:green'}
 
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-axes = axes.flatten()
+fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+axs = axs.flatten()
 
 N_faces = 20 * (4 ** NSUBs)
 
 for i, h in enumerate(altitudes):
-    ax = axes[i]
+    ax = axs[i]
     
     # Plot each field
     for field in rep_fields:
@@ -253,15 +241,13 @@ for i, h in enumerate(altitudes):
             label=f'Geo - {label_latex}'
         )
     
-    # Labels and title
     ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
     ax.set_xlabel('Number of faces', fontsize=11)
-    ax.set_ylabel('Relative   $  L_2  $   error', fontsize=11)
+    ax.set_ylabel('Relative $L_2$ error', fontsize=11)
     ax.grid(True, which="both", linestyle=':', linewidth=0.7, alpha=0.8)
-    
-    # Legend inside subplot (compact)
-    ax.legend(fontsize=9, loc='lower left', frameon=True, fancybox=True, shadow=False, ncol=2)
+    ax.legend(fontsize=9, loc='lower left', 
+              frameon=True, fancybox=True, shadow=False, ncol=2)
 
 plt.tight_layout(pad=2.5)
-plt.savefig("IcoGeoSphere_SphericalShells.png", dpi=300, bbox_inches='tight')
+plt.savefig("IcoGeoSphere_Rs.png", dpi=300, bbox_inches='tight')
 plt.show()
