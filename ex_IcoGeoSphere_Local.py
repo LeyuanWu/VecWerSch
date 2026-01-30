@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
+from datetime import datetime
 from gravity_forward_numba import gsphere, VecWerSch_numba
 # %%
 # Sphere parameters
@@ -60,7 +61,7 @@ for z0 in z_levels:
     time_geo = []
 
     for idx, nsub in enumerate(NSUBs):
-        print(f"  Processing nsub = {nsub}...")
+        print(f"  Processing nsub = {nsub}... [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
 
         # --- Icosphere ---
         mesh_ico = pv.Icosphere(radius=a, center=(xc, yc, zc), nsub=nsub)

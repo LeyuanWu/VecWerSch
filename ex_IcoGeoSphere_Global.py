@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
+from datetime import datetime
 from gravity_forward_numba import gsphere, VecWerSch_numba, rotate_vec_ten_ecef2ned
 # %%
 # Earth parameters (all in km and kg/m³)
@@ -99,7 +100,7 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
     lon_rad = np.arctan2(y_obs, x_obs)
     
     for idx, nsub in enumerate(NSUBs):
-        print(f"  Processing nsub = {nsub}...")
+        print(f"  Processing nsub = {nsub}... [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
         
         # --- Icosphere ---
         mesh_ico = pv.Icosphere(radius=a, center=(xc, yc, zc), nsub=nsub)
