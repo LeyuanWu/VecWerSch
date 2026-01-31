@@ -2,6 +2,8 @@
 # Setup
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
@@ -231,15 +233,15 @@ for i, h in enumerate(altitudes):
         ax.loglog(
             N_faces, all_err_ico[i][field],
             linestyle='-', marker='o', fillstyle='none',
-            color=color, linewidth=1.5, markersize=6,
-            label=f'Ico - {label_latex}'
+            color=color, linewidth=1, markersize=6,
+            label=f'Icosphere - {label_latex}'
         )
         # Geographic grid
         ax.loglog(
             N_faces, all_err_geo[i][field],
             linestyle='--', marker='s', fillstyle='none',
-            color=color, linewidth=1.5, markersize=6,
-            label=f'Geo - {label_latex}'
+            color=color, linewidth=2, markersize=6,
+            label=f'Geosphere - {label_latex}'
         )
     
     ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
@@ -250,5 +252,5 @@ for i, h in enumerate(altitudes):
               frameon=True, fancybox=True, shadow=False, ncol=2)
 
 plt.tight_layout(pad=2.5)
-plt.savefig("IcoGeoSphere_Rs.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.savefig(f"IcoGeoSphere_Rs_nsub{nsub_max-1}.png", dpi=300, bbox_inches='tight')
+# plt.show()

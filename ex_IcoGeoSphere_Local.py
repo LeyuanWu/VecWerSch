@@ -2,6 +2,8 @@
 # Setup
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pyvista as pv
 import time
@@ -177,6 +179,6 @@ for i, z0 in enumerate(z_levels):
     ax.legend(fontsize=9, loc='lower left', 
               frameon=True, fancybox=True, shadow=False, ncol=2)
 
-plt.tight_layout()
-plt.savefig("IcoGeoSphere_Zs.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.tight_layout(pad=2.5)
+plt.savefig(f"IcoGeoSphere_Zs_nsub{nsub_max-1}.png", dpi=300, bbox_inches='tight')
+# plt.show()
