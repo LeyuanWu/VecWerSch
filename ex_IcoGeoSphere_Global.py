@@ -9,6 +9,10 @@ import pyvista as pv
 import time
 from datetime import datetime
 from gravity_forward_numba import gsphere, VecWerSch_numba, rotate_vec_ten_ecef2ned
+# %% Start time
+print("="*80)
+print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("="*80)
 # %%
 # Earth parameters (all in km and kg/m³)
 R_earth = 6371.393     # mean Earth radius [km]
@@ -20,7 +24,7 @@ a = R_earth
 rho = rho_earth
 
 # Observation altitudes above Earth surface (in km!)
-altitudes = [0.001, 1.0, 10.0, 100.0]  # now explicitly in km
+altitudes = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]  # now explicitly in km
 obs_radii = [R_earth + h for h in altitudes]
 
 # Create observation points on spherical shells (lat/lon grid)
@@ -216,7 +220,7 @@ rep_fields = ['V', 'gD', 'TNN', 'TDD']
 latex_labels = {'V': r'$V$', 'gD': r'$g_D$', 'TNN': r'$T_{NN}$', 'TDD': r'$T_{DD}$'}
 colors = {'V': 'tab:red', 'gD': 'tab:blue', 'TNN': 'tab:orange', 'TDD': 'tab:green'}
 
-fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+fig, axs = plt.subplots(3, 2, figsize=(12, 15))
 axs = axs.flatten()
 
 N_faces = 20 * (4 ** NSUBs)
@@ -254,3 +258,25 @@ for i, h in enumerate(altitudes):
 plt.tight_layout(pad=2.5)
 plt.savefig(f"IcoGeoSphere_Rs_nsub{nsub_max-1}.png", dpi=300, bbox_inches='tight')
 # plt.show()
+
+# %% Save results
+import pickle
+import os
+
+save_dir = "Results"
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+save_filename = os.path.join(save_dir, f"error_data_nsub{nsub_max-1}.pkl")
+save_data = {
+    'all_err_ico': all_err_ico,
+    'all_err_geo': all_err_geo,
+    'all_time_ico': all_time_ico,
+    'all_time_geo': all_time_geo
+}
+with open(save_filename, 'wb') as f:
+    pickle.dump(save_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+print(f"\nData saved to: {save_filename}")
+# %% End time
+print("="*80)
+print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("="*80)
