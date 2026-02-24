@@ -15,11 +15,6 @@ nV = nVpF - nF
 Verts = eros_vf[:nV, :].astype(np.float64)
 Faces = eros_vf[nV:, :].astype(np.int64)
 
-# >>> CRITICAL: Convert from MATLAB 1-based to Python 0-based indexing <<<
-if Faces.min() == 1:
-    print("Converting face indices from 1-based (MATLAB) to 0-based (Python)")
-    Faces = Faces - 1
-
 # Bounding box (in km)
 X1, X2 = Verts[:, 0].min(), Verts[:, 0].max()
 Y1, Y2 = Verts[:, 1].min(), Verts[:, 1].max()
@@ -50,8 +45,8 @@ area_sub2 = eros_sub2.area
 # Print comparison
 print("\n=== Surface Area Comparison (km²) ===")
 print(f"Original mesh      : {area_ori:.10f}")
-print(f"Subdivision level 1: {area_sub1:.10f} (Δ = {area_sub1 - area_ori:+.2e})")
-print(f"Subdivision level 2: {area_sub2:.10f} (Δ = {area_sub2 - area_ori:+.2e})")
+print(f"Subdivision level 1: {area_sub1:.10f} (error = {area_sub1 - area_ori:+.2e})")
+print(f"Subdivision level 2: {area_sub2:.10f} (error = {area_sub2 - area_ori:+.2e})")
 
 # Optional: relative changes
 rel_change1 = (area_sub1 - area_ori) / area_ori
@@ -60,43 +55,62 @@ print(f"Relative change L1 : {rel_change1:+.2e}")
 print(f"Relative change L2 : {rel_change2:+.2e}")
 
 # %%
-# Visualization (only shows level-1 subdivision points)
-n_ori = eros_ori.n_points
-ori_pts = eros_sub1.points[:n_ori]
-new_pts = eros_sub1.points[n_ori:]
-
-ori_cloud = pv.PolyData(ori_pts)
-new_cloud = pv.PolyData(new_pts)
-
 pl = pv.Plotter(image_scale=3)
 pl.set_background('white')
 
+# Prepare face centers and normals for both meshes
+def add_face_visuals(pl, mesh, color_center='red', color_normal='blue'):
+    # Compute face centers and normals
+    centers = mesh.cell_centers()
+    centers['Normals'] = mesh.cell_normals
+    
+    # Add face centers
+    pl.add_mesh(
+        centers,
+        color=color_center,
+        point_size=8,
+        render_points_as_spheres=True
+    )
+    
+    # Add normals as arrows using glyph
+    arrows = centers.glyph(
+        orient='Normals',
+        scale=False,  # Use fixed length
+        factor=0.75    # Arrow length 
+    )
+    pl.add_mesh(arrows, color=color_normal)
+
+# Create subplot
+pl = pv.Plotter(shape=(2, 1), border=True,
+                image_scale=3, window_size=[800, 900])
+pl.set_background('white')
+
+# --- Upper subplot: Level 0 ---
+pl.subplot(0, 0)
 pl.add_mesh(
     eros_ori,
-    color='lightgray',
+    color='white',
     show_edges=True,
     edge_color='black',
-    line_width=1,
+    line_width=0.8
 )
+add_face_visuals(pl, eros_ori)
 
+# --- Right subplot: Level 1 ---
+pl.subplot(1, 0)
 pl.add_mesh(
-    ori_cloud,
-    color='red',
-    point_size=16,
-    render_points_as_spheres=True,
-    label='Original Vertices'
+    eros_sub1,
+    color='white',
+    show_edges=True,
+    edge_color='black',
+    line_width=0.5
 )
+add_face_visuals(pl, eros_sub1)
 
-pl.add_mesh(
-    new_cloud,
-    color='blue',
-    point_size=12,
-    render_points_as_spheres=True,
-    label='New (Mid-Edge) Vertices'
-)
+# Final view settings
+pl.link_views()  # Optional: synchronize camera between subplots
+pl.camera.zoom(2.0)
 
-pl.add_legend()
-pl.camera.zoom(1.25)
-
-pl.show()
-pl.screenshot("EROS_LinearRefinement.png");
+# Show interactively (optional) and save
+pl.show()  # This opens the interactive window
+pl.screenshot("EROS_subdivision_L0_vs_L1_with_normals.png");  # Save high-res image
