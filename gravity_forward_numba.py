@@ -464,3 +464,116 @@ def rotate_vec_ten_ecef2ned(lon, lat, gx, gy, gz,
     TDD = T_ned[:, 2, 2]
 
     return gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD
+
+
+@njit(parallel=True, fastmath=True, nogil=True)
+def green_third_identity_potential_numba(
+    face_centers,   # (N, 3) in km
+    face_normals,   # (N, 3) unitless (outward-pointing)
+    face_areas,     # (N,) in km^2
+    V_face,         # (N,) gravitational potential in m^2/s^2
+    g_face,         # (N, 3) gravity vector in mGal
+    eval_points     # (M, 3) evaluation points in km
+):
+    """
+    Numerically evaluate Green's third identity to compute the gravitational potential 
+    at external points using surface integrals over a polyhedral body (e.g., asteroid EROS).
+
+    The identity for a harmonic function V (i.e., Laplacian of V is zero outside the mass) is:
+    
+        V(r0) = (1/(4*pi)) * surface_integral [
+            V(r) * d/dn (1/|r - r0|) - (1/|r - r0|) * dV/dn(r)
+        ] dS
+
+    Since gravity vector g = grad(V), the normal derivative is dV/dn = g dot n.
+    Substituting this gives:
+
+        V(r0) = (1/(4*pi)) * surface_integral [
+            V(r) * (R dot n) / R^3 - (g(r) dot n) / R
+        ] dS,
+
+    where R = r0 - r, R = |R|, and n is the outward unit normal.
+
+    This implementation uses a piecewise-constant (face-center) quadrature:
+    each triangular face contributes its center value times its area.
+
+    Unit Convention (user-managed consistency):
+    - Positions (face_centers, eval_points): kilometers (km)
+    - Face areas: square kilometers (km^2)
+    - Potential V_face: meters^2 / seconds^2 (m^2/s^2)
+    - Gravity vector g_face: milligals (mGal)
+    
+
+    Parameters
+    ----------
+    face_centers : ndarray, shape (N, 3)
+        Center coordinates of mesh faces in km.
+    face_normals : ndarray, shape (N, 3)
+        Outward-pointing unit normal vectors (dimensionless).
+    face_areas : ndarray, shape (N,)
+        Area of each face in km^2.
+    V_face : ndarray, shape (N,)
+        Gravitational potential at face centers in m^2/s^2.
+    g_face : ndarray, shape (N, 3)
+        Gravitational acceleration vector at face centers in mGal.
+    eval_points : ndarray, shape (M, 3)
+        Points where potential is to be computed, in km.
+
+    Returns
+    -------
+    V_green : ndarray, shape (M,)
+        Reconstructed gravitational potential at evaluation points in m^2/s^2.
+
+    Notes
+    -----
+    - Valid only for evaluation points outside the body (where Laplacian V = 0).
+    - Assumes mesh is closed and consistently oriented (outward normals).
+    - Accuracy limited by face-center quadrature; suitable for validation.
+    - Accelerated with Numba: parallelized over evaluation points.
+    """
+    N = face_centers.shape[0]
+    M = eval_points.shape[0]
+    inv_4pi = 1.0 / (4.0 * np.pi)
+
+    V_green = np.empty(M, dtype=np.float64)
+
+    # Parallel loop over evaluation points
+    for i in prange(M):
+        r0x = eval_points[i, 0]
+        r0y = eval_points[i, 1]
+        r0z = eval_points[i, 2]
+
+        integral = 0.0
+
+        # Loop over all faces to accumulate surface integral
+        for j in range(N):
+            # Vector from source (face center) to field point
+            dx = r0x - face_centers[j, 0]
+            dy = r0y - face_centers[j, 1]
+            dz = r0z - face_centers[j, 2]
+
+            # Squared and actual distance
+            R2 = dx*dx + dy*dy + dz*dz
+            R = np.sqrt(R2)
+            R3 = R2 * R  # R^3
+
+            # Normal components at face j
+            nx, ny, nz = face_normals[j, 0], face_normals[j, 1], face_normals[j, 2]
+
+            # Term 1: V * d(1/R)/dn = V * (R dot n) / R^3
+            R_dot_n = dx * nx + dy * ny + dz * nz
+            term1 = V_face[j] * (R_dot_n / R3) * face_areas[j] 
+
+            # Term 2: - (1/R) * dV/dn = - (1/R) * (g dot n)  [since dV/dn = g dot n]
+            gx, gy, gz = g_face[j, 0], g_face[j, 1], g_face[j, 2]
+            g_dot_n = gx * nx + gy * ny + gz * nz
+            term2 = - 1.e-2 * g_dot_n / R * face_areas[j] 
+
+            # Combine terms and weight by face area
+            integrand = term1 + term2
+            integral += integrand 
+
+        # Apply Green's identity scaling factor
+        V_green[i] = inv_4pi * integral
+
+    return V_green
