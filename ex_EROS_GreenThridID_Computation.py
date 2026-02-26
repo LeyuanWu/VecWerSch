@@ -1,27 +1,22 @@
 # %%
-# =============================================================================
-# 1. IMPORTS AND CONFIGURATION
-# =============================================================================
+# Setup
 import numpy as np
 import pyvista as pv
+import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from gravity_forward_numba import VecWerSch_numba, green_third_identity_potential_numba
-
+import time
+# %% 
 # Parameters
-radii = [18, 20, 25, 30]  # km
-icosphere_level = 4        # ~2562 points per sphere
-rho = 2670.0               # kg/m³
-
-print("Imports and config loaded.")
+radii = [18, 20, 25, 30]          # Evaluation sphere radii (km)
+icosphere_level = 4               # 10 * 4^n + 2
+rho = 2670.0                      # Density (kg/m^3)
+subdivision_levels = [0, 1, 2, 3, 4, 5]  # Mesh refinement levels
 
 # %%
-# =============================================================================
-# 2. LOAD EROS GEOMETRY
-# =============================================================================
-print("=== Loading EROS Geometry ===")
+# Load EROS shape model from MAT file
 eros_mat = loadmat('EROS.mat')
-eros_vf = eros_mat['eros856_1708']  # shape: (nVert + nFace, 3)
-
+eros_vf = eros_mat['eros856_1708']  # First nV rows: vertices; last nF rows: faces
 nF = 1708
 nVpF = eros_vf.shape[0]
 nV = nVpF - nF
@@ -29,153 +24,151 @@ nV = nVpF - nF
 Verts = eros_vf[:nV, :].astype(np.float64)
 Faces = eros_vf[nV:, :].astype(np.int64)
 
-# Build PyVista mesh
+# Create base PyVista mesh
 pv_faces = np.column_stack([np.full(nF, 3, dtype=np.int32), Faces])
-eros_ori = pv.PolyData(Verts, pv_faces)
-eros_sub = eros_ori.subdivide(3, subfilter='linear')   # 1 level
-
-# Compute face properties
-print("Computing face centers, normals, areas...")
-face_centers = eros_sub.cell_centers().points          # (1708, 3) km
-face_normals = eros_sub.face_normals                   # (1708, 3)
-face_areas = eros_sub.compute_cell_sizes()["Area"]     # (1708,) km^2
+eros_base = pv.PolyData(Verts, pv_faces)
 
 # %%
-# =============================================================================
-# 3. COMPUTE REFERENCE FIELD ON FACE CENTERS
-# =============================================================================
-print("Computing gravity field on face centers...")
-V_face, gx_face, gy_face, gz_face, *_ = VecWerSch_numba(face_centers, Verts, Faces, rho)
-g_face = np.column_stack((gx_face, gy_face, gz_face))  # (1708, 3) in mGal
-
-# %%
-# =============================================================================
-# 4. GENERATE EVALUATION POINTS USING ICOSPHERE (LEVEL 4)
-# =============================================================================
-print("Generating evaluation points using PyVista Icosphere (level=4)...")
-all_eval_points = []
-radius_per_point = []
-
+# Generate evaluation points on concentric spheres (one per radius)
+eval_points_per_radius = []
 for r in radii:
-    # Create unit icosphere
     sphere_unit = pv.Icosphere(radius=1.0, nsub=icosphere_level)
-    pts_unit = sphere_unit.points  # (N, 3), on unit sphere
-    
-    # Scale to actual radius (in km)
-    pts_actual = pts_unit * r  # now in km
-    
-    all_eval_points.append(pts_actual)
-    radius_per_point.extend([r] * pts_actual.shape[0])
-
-eval_points = np.vstack(all_eval_points)  # (M, 3) in km
-radius_per_point = np.array(radius_per_point)
-print(f"Total evaluation points: {eval_points.shape[0]} (≈{len(sphere_unit.points)} per sphere)")
-
-# Store unit-sphere points for plotting later
-unit_sphere_points = sphere_unit.points.copy()  # (N, 3), same for all spheres
+    pts_actual = sphere_unit.points * r
+    eval_points_per_radius.append(pts_actual)
 
 # %%
-# =============================================================================
-# 5. COMPUTE EXACT AND GREEN'S POTENTIALS
-# =============================================================================
-print("Computing exact potential (polyhedral forward model)...")
-V_exact, *_ = VecWerSch_numba(eval_points, Verts, Faces, rho)
+# Compute reference (exact) gravity potential on each evaluation sphere
+print("Computing exact gravity potential on evaluation spheres...")
+V_exact_per_radius = []
+t0_total = time.time()
 
-print("Computing Green's identity potential...")
-V_green = green_third_identity_potential_numba(
-    face_centers, face_normals, face_areas, V_face, g_face, eval_points
-)
+for i, (r, pts) in enumerate(zip(radii, eval_points_per_radius)):
+    t0 = time.time()
+    V_exact, *_ = VecWerSch_numba(pts, Verts, Faces, rho)
+    t_elapsed = time.time() - t0
+    V_exact_per_radius.append(V_exact)
+    print(f" -> Radius {r} km: {len(pts)} points, time = {t_elapsed:.3f} s")
 
-# %%
-# =============================================================================
-# 6. ERROR ANALYSIS AND TABLED OUTPUT
-# =============================================================================
-diff = V_green - V_exact
-abs_err = np.abs(diff)
-rel_err = abs_err / np.abs(V_exact)
-
-print("\n" + "="*120)
-print("VALIDATION RESULTS: Green's Third Identity vs Polyhedral Forward Model")
-print("="*120)
-print(f"{'Radius':>8} | {'Points':>7} | {'V_exact [m²/s²]':>36} | {'Abs Error [m²/s²]':>36} | {'Rel Error':>12}")
-print(f"{'(km)':>8} | {'':>7} | {'min / mean / max / RMS':>36} | {'min / mean / max / RMS':>36} | {'mean / RMS':>12}")
-print("-"*120)
-
-plot_data = []  # will store (r, diff_values)
-
-for r in radii:
-    mask = (radius_per_point == r)
-    V_ref = V_exact[mask]
-    diff_r = diff[mask]
-    abs_err_r = abs_err[mask]
-    rel_err_r = rel_err[mask]
-    
-    # Reference stats
-    V_min = np.min(V_ref)
-    V_max = np.max(V_ref)
-    V_mean = np.mean(V_ref)
-    V_rms = np.sqrt(np.mean(V_ref**2))
-    
-    # Error stats
-    abs_min = np.min(abs_err_r)
-    abs_max = np.max(abs_err_r)
-    abs_mean = np.mean(abs_err_r)
-    abs_rms = np.sqrt(np.mean(diff_r**2))
-    
-    rel_mean = np.mean(rel_err_r)
-    rel_rms = np.sqrt(np.mean((diff_r / V_ref)**2))
-    
-    print(
-        f"{r:8.1f} | {mask.sum():7d} | "
-        f"{V_min:8.3e} / {V_mean:8.3e} / {V_max:8.3e} / {V_rms:8.3e} | "
-        f"{abs_min:8.3e} / {abs_mean:8.3e} / {abs_max:8.3e} / {abs_rms:8.3e} | "
-        f"{rel_mean:8.3e} / {rel_rms:8.3e}"
-    )
-    
-    plot_data.append((r, diff_r))
-
-print("-"*120)
+t_total = time.time() - t0_total
+print(f"Total time for exact potential computation: {t_total:.3f} s")
 
 # %%
-# =============================================================================
-# 7. PLOT DIFFERENCE MAPS ON UNIT SPHERES (WITH INDIVIDUAL COLORBARS)
-# =============================================================================
-print("\nRendering difference maps on unit spheres...")
-
-# Use the same icosphere mesh for all plots (unit radius)
-base_mesh = pv.Icosphere(radius=1.0, nsub=icosphere_level)
-
-p = pv.Plotter(shape=(2, 2), window_size=[800, 800])
-p.set_background("white")
-
-for idx, (r, diff_vals) in enumerate(plot_data):
-    # Create a copy of the base unit sphere
-    mesh_plot = base_mesh.copy(deep=True)
-    mesh_plot[f"r={r}"] = diff_vals
+# Convergence study: loop over mesh refinement levels
+convergence_summary = []  # Store error metrics per refinement level
+for level in subdivision_levels:
+    print(f"\nProcessing subdivision level: {level}")
     
-    row = idx // 2
-    col = idx % 2
-    p.subplot(row, col)
+    # Refine mesh
+    if level == 0:
+        eros_sub = eros_base.copy()
+    else:
+        eros_sub = eros_base.subdivide(level, subfilter='linear')
     
-    p.add_mesh(
-        mesh_plot,
-        scalars=f"r={r}",
-        cmap="coolwarm",
-        show_edges=False,
-        scalar_bar_args={
-            "title": "ΔV [m²/s²]",
-            "fmt": "%.1e",
-            "vertical": True,
-            "position_x": 0.82 + col * 0.18,
-            "position_y": 0.05,
-            "width": 0.05,
-            "height": 0.9,
-        }
-    )
-    p.add_text(f"r = {r} km", font_size=12, color="black")
-    p.show_axes()
+    n_faces = eros_sub.n_cells
+    print(f" -> Mesh has {n_faces} faces")
 
-p.link_views()
-p.show()
+    # Extract face geometry
+    face_centers = eros_sub.cell_centers().points
+    face_normals = eros_sub.face_normals
+    face_areas = eros_sub.compute_cell_sizes()["Area"]
 
-print("\n✅ Validation complete.")
+    # Compute exact field on face centers (for Green's identity)
+    t0 = time.time()
+    V_face, gx_face, gy_face, gz_face, *_ = VecWerSch_numba(face_centers, Verts, Faces, rho)
+    g_face = np.column_stack((gx_face, gy_face, gz_face))
+    t_ref = time.time() - t0
+
+    # Evaluate Green's third identity potential on each sphere
+    V_green_per_radius = []
+    t_green_total = 0.0
+    for pts in eval_points_per_radius:
+        t0 = time.time()
+        V_green = green_third_identity_potential_numba(
+            face_centers, face_normals, face_areas, V_face, g_face, pts
+        )
+        t_green_total += time.time() - t0
+        V_green_per_radius.append(V_green)
+
+    print(f" -> Time (Face center field): {t_ref:.3f} s")
+    print(f" -> Time (Green's Third ID):  {t_green_total:.3f} s")
+
+    # Compute relative errors
+    rel_rms_errors = []
+    rel_max_errors = []
+    for i in range(len(radii)):
+        V_exact = V_exact_per_radius[i]
+        V_green = V_green_per_radius[i]
+        diff = V_green - V_exact
+
+        rms_diff = np.sqrt(np.mean(diff**2))
+        rms_exact = np.sqrt(np.mean(V_exact**2))
+        rel_rms = rms_diff / rms_exact
+        rel_max = np.max(np.abs(diff) / np.abs(V_exact))
+
+        rel_rms_errors.append(rel_rms)
+        rel_max_errors.append(rel_max)
+
+    convergence_summary.append({
+        'level': level,
+        'n_faces': n_faces,
+        'rel_rms': rel_rms_errors,
+        'rel_max': rel_max_errors
+    })
+
+# %%
+# Print convergence table (journal-friendly format)
+print("\n" + "="*92)
+print("Convergence of Green's Third Identity Approximation")
+print("Relative RMS and Maximum Errors vs. Eros Mesh Refinement")
+print("="*92)
+
+header1 = f"{'Level':>6} {'Faces':>8}" + "".join([f" {'RMS':>12} {'Max':>12}" for _ in radii])
+header2 = " " * 15 + "".join([(" " * 10 + f"{r} km".center(16)) for r in radii])
+print(header1)
+print(header2)
+print("-"*92)
+
+for entry in convergence_summary:
+    level = entry['level']
+    n_faces = entry['n_faces']
+    row = f"{level:6d} {n_faces:8d}"
+    for i in range(len(radii)):
+        rms = entry['rel_rms'][i]
+        mx = entry['rel_max'][i]
+        row += f" {rms:12.3e} {mx:12.3e}"
+    print(row)
+
+print("-"*92)
+print("Note: All errors are relative (dimensionless).")
+
+# %%
+# Plot convergence: one subplot per radius
+
+fig, axes = plt.subplots(2, 2, figsize=(9, 7.5), dpi=300)
+axes = np.array(axes).reshape(-1)
+
+n_faces_list = [entry['n_faces'] for entry in convergence_summary]
+rel_rms_matrix = np.array([entry['rel_rms'] for entry in convergence_summary])
+rel_max_matrix = np.array([entry['rel_max'] for entry in convergence_summary])
+
+for i, r in enumerate(radii):
+    ax = axes[i]
+    rms_vals = rel_rms_matrix[:, i]
+    max_vals = rel_max_matrix[:, i]
+
+    ax.loglog(n_faces_list, rms_vals,
+              marker='o', linestyle='-', color='tab:blue',
+              label='Rel. RMS Error', markersize=5)
+    ax.loglog(n_faces_list, max_vals,
+              marker='s', linestyle='--', color='tab:red',
+              label='Rel. Max Error', markersize=5)
+
+    ax.set_title(f'r = {r} km', fontsize=12)
+    ax.grid(True, which="both", ls="--", alpha=0.6)
+    ax.set_xlabel('Number of Faces')
+    ax.set_ylabel('Relative Error')
+    ax.legend()
+
+plt.tight_layout(pad=2.0)
+fig.savefig('greenthirdid_convergence.png', dpi=300, bbox_inches='tight')
+plt.show()
