@@ -6,7 +6,7 @@ import scipy.io
 import numpy as np
 import pyvista as pv
 # %% # ! Reading EROS shape .mat file
-mat_data = scipy.io.loadmat('EROS.mat')
+mat_data = scipy.io.loadmat('../EROS.mat')
 # variable_names = [key for key in mat_data.keys() if not key.startswith('__')]
 # ['eros856_1708','eros3897_7790','eros5078_10152',
 # 'eros11272_22540','eros44701_89398','eros100352_200700']
