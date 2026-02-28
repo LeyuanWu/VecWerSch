@@ -6,15 +6,17 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from gravity_forward_numba import VecWerSch_numba, green_third_identity_potential_numba
 import time
+
 # %% 
 # Parameters
 radii = [18, 20, 25, 30]          # Evaluation sphere radii (km)
-icosphere_level = 4               # 10 * 4^n + 2
+icosph_level = 5                  # 10 * 4^n + 2
+sub_lvls = list(range(7))         # Mesh refinement levels
 rho = 2670.0                      # Density (kg/m^3)
-sub_lvls = [0, 1, 2, 3, 4, 5]     # Mesh refinement levels
 
 # %%
 # Load EROS shape model from MAT file
+print("=== Loading EROS Geometry ===")
 eros_mat = loadmat('EROS.mat')
 eros_vf = eros_mat['eros856_1708']  # First nV rows: vertices; last nF rows: faces
 nF = 1708
@@ -24,6 +26,18 @@ nV = nVpF - nF
 Verts = eros_vf[:nV, :].astype(np.float64)
 Faces = eros_vf[nV:, :].astype(np.int64)
 
+# Bounding box (in km)
+X1, X2 = Verts[:, 0].min(), Verts[:, 0].max()
+Y1, Y2 = Verts[:, 1].min(), Verts[:, 1].max()
+Z1, Z2 = Verts[:, 2].min(), Verts[:, 2].max()
+
+print(f"Number of vertices : {nV}")
+print(f"Number of faces    : {nF}")
+print(f"Bounding box (km)  :")
+print(f"  X ∈ [{X1:8.4f}, {X2:8.4f}]")
+print(f"  Y ∈ [{Y1:8.4f}, {Y2:8.4f}]")
+print(f"  Z ∈ [{Z1:8.4f}, {Z2:8.4f}]")
+
 # Create base PyVista mesh
 pv_faces = np.column_stack([np.full(nF, 3, dtype=np.int32), Faces])
 eros_base = pv.PolyData(Verts, pv_faces)
@@ -32,13 +46,13 @@ eros_base = pv.PolyData(Verts, pv_faces)
 # Generate evaluation points on concentric spheres (one per radius)
 eval_pts_Rs = []
 for r in radii:
-    sphere_unit = pv.Icosphere(radius=1.0, nsub=icosphere_level)
-    pts_actual = sphere_unit.points * r
-    eval_pts_Rs.append(pts_actual)
+    sphere_unit = pv.Icosphere(radius=1.0, nsub=icosph_level)
+    pts = sphere_unit.points * r
+    eval_pts_Rs.append(pts)
 
 # %%
 # Compute reference (exact) gravity potential on each evaluation sphere
-print("Computing exact gravity potential on evaluation spheres...")
+print("\nComputing exact gravity potential on evaluation spheres...")
 V_exact_Rs = []
 t0_total = time.time()
 
@@ -54,7 +68,7 @@ print(f"Total time for exact potential computation: {t_total:.3f} s")
 
 # %%
 # Convergence study: loop over mesh refinement levels
-convergence_summary = []  # Store error metrics per refinement level
+converg_summary = []  # Store error metrics per refinement level
 for level in sub_lvls:
     print(f"\nProcessing subdivision level: {level}")
     
@@ -76,7 +90,8 @@ for level in sub_lvls:
     t0 = time.time()
     V_face, gx_face, gy_face, gz_face, *_ = VecWerSch_numba(face_centers, Verts, Faces, rho)
     g_face = np.column_stack((gx_face, gy_face, gz_face))
-    t_ref = time.time() - t0
+    t_face = time.time() - t0
+    print(f" -> Time (Face center field): {t_face:.3f} s")
 
     # Evaluate Green's third identity potential on each sphere
     V_green_Rs = []
@@ -88,8 +103,6 @@ for level in sub_lvls:
         )
         t_green_total += time.time() - t0
         V_green_Rs.append(V_green)
-
-    print(f" -> Time (Face center field): {t_ref:.3f} s")
     print(f" -> Time (Green's Third ID):  {t_green_total:.3f} s")
 
     # Compute relative errors
@@ -103,12 +116,12 @@ for level in sub_lvls:
         rms_diff = np.sqrt(np.mean(diff**2))
         rms_exact = np.sqrt(np.mean(V_exact**2))
         rel_rms = rms_diff / rms_exact
-        rel_max = np.max(np.abs(diff) / np.abs(V_exact))
+        rel_max = np.max(np.abs(diff/V_exact))
 
         rel_rms_errors.append(rel_rms)
         rel_max_errors.append(rel_max)
 
-    convergence_summary.append({
+    converg_summary.append({
         'level': level,
         'n_faces': n_faces,
         'rel_rms': rel_rms_errors,
@@ -116,7 +129,7 @@ for level in sub_lvls:
     })
 
 # %%
-# Print convergence table (journal-friendly format)
+# Print convergence table
 print("\n" + "="*92)
 print("Convergence of Green's Third Identity Approximation")
 print("Relative RMS and Maximum Errors vs. Eros Mesh Refinement")
@@ -128,7 +141,7 @@ print(header1)
 print(header2)
 print("-"*92)
 
-for lvl_summary in convergence_summary:
+for lvl_summary in converg_summary:
     level = lvl_summary['level']
     n_faces = lvl_summary['n_faces']
     row = f"{level:6d} {n_faces:8d}"
@@ -147,9 +160,9 @@ print("Note: All errors are relative (dimensionless).")
 fig, axes = plt.subplots(2, 2, figsize=(9, 7.5), dpi=300)
 axes = np.array(axes).reshape(-1)
 
-n_faces_list = [entry['n_faces'] for entry in convergence_summary]
-rel_rms_matrix = np.array([entry['rel_rms'] for entry in convergence_summary])
-rel_max_matrix = np.array([entry['rel_max'] for entry in convergence_summary])
+n_faces_list = [lvl_summary['n_faces'] for lvl_summary in converg_summary]
+rel_rms_matrix = np.array([lvl_summary['rel_rms'] for lvl_summary in converg_summary])
+rel_max_matrix = np.array([lvl_summary['rel_max'] for lvl_summary in converg_summary])
 
 for i, r in enumerate(radii):
     ax = axes[i]
@@ -164,7 +177,7 @@ for i, r in enumerate(radii):
               label='Rel. Max Error', markersize=5)
 
     ax.set_title(f'r = {r} km', fontsize=12)
-    ax.grid(True, which="both", ls="--", alpha=0.6)
+    ax.grid(True, which="both", ls="--", alpha=0.8)
     ax.set_xlabel('Number of Faces')
     ax.set_ylabel('Relative Error')
     ax.legend()
@@ -174,7 +187,6 @@ fig.savefig('greenthirdid_convergence.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # %%
-# %%
 # Visualize pointwise relative error on r = 18 km sphere across refinement levels
 plot_levels = [0, 1, 2, 3]  # Choose 4 levels for 2x2 grid
 
@@ -182,7 +194,7 @@ r_target = radii[0]  # 18 km
 pts_18km = eval_pts_Rs[0]
 V_exact_18 = V_exact_Rs[0]
 
-target_sphere = pv.Icosphere(radius=r_target, nsub=icosphere_level)
+target_sphere = pv.Icosphere(radius=r_target, nsub=icosph_level)
 
 pl = pv.Plotter(shape=(2, 2), border=True, 
                 window_size=[800, 800], image_scale=3)
@@ -213,18 +225,26 @@ for plot_idx, level in enumerate(plot_levels):
     
     # Plot Eros shape model
     pl.subplot(plot_idx // 2, plot_idx % 2)
-    pl.add_mesh(eros_base, color=None, show_edges=True)
+    pl.add_mesh(eros_base, color=None, show_edges=True, line_width=2)
     
     # Add the scaled unit sphere with errors
+    # pl.add_mesh(target_sphere.copy(deep=False), scalars=f'level{level}', cmap='viridis',
+    #             style='points', render_points_as_spheres=True, point_size=14,
+    #             opacity=1.0, log_scale=True, show_edges=False, show_scalar_bar=False)
+
     pl.add_mesh(target_sphere.copy(deep=False), scalars=f'level{level}', cmap='viridis',
-                style='points', opacity=0.8, log_scale=True, show_edges=False, show_scalar_bar=False)
+                style='surface',
+                opacity=0.75, log_scale=True, show_edges=False, show_scalar_bar=False)
     
     # Add scalar bar
     pl.add_scalar_bar(title=f'Level {level}', title_font_size=14, 
-                      label_font_size=12, n_labels=3, position_x=0.25, fmt='%.3e')
+                      label_font_size=12, n_labels=3, position_x=0.3, fmt='%.3e')
     
-    # Set camera position to view from -X direction
-    pl.camera_position = [(-100, -50, 0), (0, 0, 0), (0, 0, 1)]
+    # Set camera position
+    pl.camera_position = [(-100, -50, 50), (0, 0, 0), (0, 0, 1)]
+
+    # Add XYZ axes
+    pl.add_axes(label_size=(0.1/3, 0.1/3))
 
 pl.link_views()
 pl.show()
