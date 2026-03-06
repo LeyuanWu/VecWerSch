@@ -326,6 +326,206 @@ def VecWerSch_numba(P, Q, If, rho):
     )
 
 
+@njit(parallel=True, fastmath=True, nogil=True)
+def _compute_gravity_numba_onthefly(
+    P,
+    Q, If, Ie,
+    hnf, mag_nf, A_dot_nf,
+    G, rho, km2m, si2mg, si2eot
+):
+    """
+    Memory-efficient gravity computation.
+    - Face normals (hnf, A_dot_nf) are precomputed.
+    - Edge geometry is computed on-the-fly.
+    """
+    M = P.shape[0]
+    V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz = [np.zeros(M) for _ in range(10)]
+
+    Nf = If.shape[0]
+    Ne = Ie.shape[0]
+
+    for i in prange(M):
+        px, py, pz = P[i, 0], P[i, 1], P[i, 2]
+
+        Vf = Ve = 0.0
+        gxf = gyf = gzf = 0.0
+        gxe = gye = gze = 0.0
+        Txx_f = Tyy_f = Tzz_f = Txy_f = Txz_f = Tyz_f = 0.0
+        Txx_e = Tyy_e = Tzz_e = Txy_e = Txz_e = Tyz_e = 0.0
+
+        # --- Face loop (using precomputed hnf, A_dot_nf) ---
+        for j in range(Nf):
+            ax = Q[If[j, 0], 0] - px
+            ay = Q[If[j, 0], 1] - py
+            az = Q[If[j, 0], 2] - pz
+
+            bx = Q[If[j, 1], 0] - px
+            by = Q[If[j, 1], 1] - py
+            bz = Q[If[j, 1], 2] - pz
+
+            cx = Q[If[j, 2], 0] - px
+            cy = Q[If[j, 2], 1] - py
+            cz = Q[If[j, 2], 2] - pz
+
+            rPA = (ax*ax + ay*ay + az*az)**0.5
+            rPB = (bx*bx + by*by + bz*bz)**0.5
+            rPC = (cx*cx + cy*cy + cz*cz)**0.5
+
+            rPA_dot_rPB = ax*bx + ay*by + az*bz
+            rPB_dot_rPC = bx*cx + by*cy + bz*cz
+            rPC_dot_rPA = cx*ax + cy*ay + cz*az
+
+            denom = rPA*rPB*rPC + rPA*rPB_dot_rPC + rPB*rPC_dot_rPA + rPC*rPA_dot_rPB
+            mixProd = A_dot_nf[j] - mag_nf[j] * (px*hnf[j,0] + py*hnf[j,1] + pz*hnf[j,2])
+            wf = 2.0 * np.arctan2(mixProd, denom)
+            rf_dot_hnf = mixProd / mag_nf[j]
+
+            Vf += rf_dot_hnf * rf_dot_hnf * wf
+            gxf += hnf[j,0] * rf_dot_hnf * wf
+            gyf += hnf[j,1] * rf_dot_hnf * wf
+            gzf += hnf[j,2] * rf_dot_hnf * wf
+
+            Txx_f += hnf[j,0] * hnf[j,0] * wf
+            Tyy_f += hnf[j,1] * hnf[j,1] * wf
+            Tzz_f += hnf[j,2] * hnf[j,2] * wf
+            Txy_f += hnf[j,0] * hnf[j,1] * wf
+            Txz_f += hnf[j,0] * hnf[j,2] * wf
+            Tyz_f += hnf[j,1] * hnf[j,2] * wf
+
+        # --- Edge loop (on-the-fly geometry) ---
+        for k in range(Ne):
+            v0 = Ie[k, 0]
+            v1 = Ie[k, 1]
+            f_pos = Ie[k, 2]
+            f_neg = Ie[k, 3]
+
+            # Edge vector: B - A
+            ABx = Q[v1, 0] - Q[v0, 0]
+            ABy = Q[v1, 1] - Q[v0, 1]
+            ABz = Q[v1, 2] - Q[v0, 2]
+            magAB = (ABx*ABx + ABy*ABy + ABz*ABz)**0.5
+            heABx = ABx / magAB
+            heABy = ABy / magAB
+            heABz = ABz / magAB
+
+            # Vector from P to A
+            ax = Q[v0, 0] - px
+            ay = Q[v0, 1] - py
+            az = Q[v0, 2] - pz
+            rPA = (ax*ax + ay*ay + az*az)**0.5
+
+            # Vector from P to B
+            bx = Q[v1, 0] - px
+            by = Q[v1, 1] - py
+            bz = Q[v1, 2] - pz
+            rPB = (bx*bx + by*by + bz*bz)**0.5
+
+            sum_r = rPA + rPB
+            Le = np.log((sum_r + magAB) / (sum_r - magAB))
+
+            # Get face normals
+            hn_pos_x, hn_pos_y, hn_pos_z = hnf[f_pos, 0], hnf[f_pos, 1], hnf[f_pos, 2]
+            hn_neg_x, hn_neg_y, hn_neg_z = hnf[f_neg, 0], hnf[f_neg, 1], hnf[f_neg, 2]
+
+            # Compute hnAB = heAB x hn_pos
+            hnAB_x = heABy * hn_pos_z - heABz * hn_pos_y
+            hnAB_y = heABz * hn_pos_x - heABx * hn_pos_z
+            hnAB_z = heABx * hn_pos_y - heABy * hn_pos_x
+
+            # Compute hnBA = (-heAB) x hn_neg 
+            hnBA_x = -(heABy * hn_neg_z - heABz * hn_neg_y)
+            hnBA_y = -(heABz * hn_neg_x - heABx * hn_neg_z)
+            hnBA_z = -(heABx * hn_neg_y - heABy * hn_neg_x)
+
+            # Dot products: re · h = (A - P)·h
+            re_dot_hn_pos = ax*hn_pos_x + ay*hn_pos_y + az*hn_pos_z
+            re_dot_hnAB   = ax*hnAB_x   + ay*hnAB_y   + az*hnAB_z
+            re_dot_hn_neg = ax*hn_neg_x + ay*hn_neg_y + az*hn_neg_z
+            re_dot_hnBA   = ax*hnBA_x   + ay*hnBA_y   + az*hnBA_z
+
+            rEr = re_dot_hn_pos * re_dot_hnAB + re_dot_hn_neg * re_dot_hnBA
+
+            Ve += rEr * Le
+            gxe += (hn_pos_x * re_dot_hnAB + hn_neg_x * re_dot_hnBA) * Le
+            gye += (hn_pos_y * re_dot_hnAB + hn_neg_y * re_dot_hnBA) * Le
+            gze += (hn_pos_z * re_dot_hnAB + hn_neg_z * re_dot_hnBA) * Le
+
+            Txx_e += (hn_pos_x * hnAB_x + hn_neg_x * hnBA_x) * Le
+            Tyy_e += (hn_pos_y * hnAB_y + hn_neg_y * hnBA_y) * Le
+            Tzz_e += (hn_pos_z * hnAB_z + hn_neg_z * hnBA_z) * Le
+            Txy_e += (hn_pos_x * hnAB_y + hn_neg_x * hnBA_y) * Le
+            Txz_e += (hn_pos_x * hnAB_z + hn_neg_x * hnBA_z) * Le
+            Tyz_e += (hn_pos_y * hnAB_z + hn_neg_y * hnBA_z) * Le
+
+        scale_V = 0.5 * G * rho * (km2m * km2m)
+        scale_g = G * rho * km2m * si2mg
+        scale_T = G * rho * si2eot
+
+        V[i]  = scale_V * (Ve - Vf)
+        gx[i] = scale_g * (gxf - gxe)
+        gy[i] = scale_g * (gyf - gye)
+        gz[i] = scale_g * (gzf - gze)
+        Txx[i] = scale_T * (Txx_e - Txx_f)
+        Tyy[i] = scale_T * (Tyy_e - Tyy_f)
+        Tzz[i] = scale_T * (Tzz_e - Tzz_f)
+        Txy[i] = scale_T * (Txy_e - Txy_f)
+        Txz[i] = scale_T * (Txz_e - Txz_f)
+        Tyz[i] = scale_T * (Tyz_e - Tyz_f)
+
+    return V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz
+
+
+def VecWerSch_numba_onthefly(P, Q, If, rho):
+    """
+    Memory-efficient Werner-Schmidt gravity for large meshes.
+    Only precomputes face normals and edge topology.
+    """
+    G = 6.67430e-11
+    km2m = 1.e3
+    si2mg = 1.e5
+    si2eot = 1.e9
+
+    P = np.asarray(P, dtype=np.float64)
+    Q = np.asarray(Q, dtype=np.float64)
+    If = np.asarray(If, dtype=np.int32)
+
+    # --- Precompute face normals (essential) ---
+    A_f = Q[If[:, 0]]
+    B_f = Q[If[:, 1]]
+    C_f = Q[If[:, 2]]
+
+    AB = B_f - A_f
+    BC = C_f - B_f
+    nf = np.empty_like(A_f)
+    nf[:, 0] = AB[:, 1] * BC[:, 2] - AB[:, 2] * BC[:, 1]
+    nf[:, 1] = AB[:, 2] * BC[:, 0] - AB[:, 0] * BC[:, 2]
+    nf[:, 2] = AB[:, 0] * BC[:, 1] - AB[:, 1] * BC[:, 0]
+
+    mag_nf = np.sqrt(np.sum(nf * nf, axis=1))
+    hnf = nf / mag_nf[:, None]
+    A_dot_nf = np.sum(A_f * nf, axis=1)
+
+    # --- Edge topology only (no geometry) ---
+    Ie = _Faces2Edges(If)  # (Ne, 4): [v0, v1, f_ccw, f_cw]
+
+    # --- Compute gravity ---
+    return _compute_gravity_numba_onthefly(
+        P, Q, If, Ie, hnf, mag_nf, A_dot_nf,
+        G, rho, km2m, si2mg, si2eot
+    )
+
+
+@njit(fastmath=True)
+def _great_circle_distance(a, b):
+    cross_norm = np.sqrt(
+        (a[1]*b[2] - a[2]*b[1])**2 +
+        (a[2]*b[0] - a[0]*b[2])**2 +
+        (a[0]*b[1] - a[1]*b[0])**2
+    )
+    dot = a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
+    return np.arctan2(cross_norm, dot)
+
+
 @njit(fastmath=True)
 def spherical_edge_length_range(verts, faces):
     """
@@ -370,17 +570,6 @@ def spherical_edge_length_range(verts, faces):
         if d > max_dist: max_dist = d
 
     return min_dist, max_dist
-
-
-@njit(fastmath=True)
-def _great_circle_distance(a, b):
-    cross_norm = np.sqrt(
-        (a[1]*b[2] - a[2]*b[1])**2 +
-        (a[2]*b[0] - a[0]*b[2])**2 +
-        (a[0]*b[1] - a[1]*b[0])**2
-    )
-    dot = a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
-    return np.arctan2(cross_norm, dot)
 
 
 def rotate_vec_ten_ecef2ned(lon, lat, gx, gy, gz,
