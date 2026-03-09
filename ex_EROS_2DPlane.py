@@ -73,7 +73,7 @@ P = np.column_stack((X2d.ravel(), Y2d.ravel(), Z2d.ravel()))
 t0 = time.time()
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Txy_cal, Txz_cal, Tyy_cal, Tyz_cal, Tzz_cal = \
-    VecWerSch_numba_onthefly(P, Verts, Faces, rho)
+    WerSch_numba(P, Verts, Faces, rho)
 tc_numba = time.time() - t0
 
 # Reshape to 2D to match reference

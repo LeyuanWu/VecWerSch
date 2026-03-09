@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pyvista as pv
 import time
 from datetime import datetime
-from gravity_forward_numba import gsphere, VecWerSch_numba
+from gravity_forward_numba import gsphere, WerSch_numba
 # %%
 # Sphere parameters
 xc, yc, zc = 0., 0., 2.
@@ -72,7 +72,7 @@ for z0 in z_levels:
 
         t0 = time.time()
         V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i = \
-            VecWerSch_numba(P, verts_ico, faces_ico, rho)
+            WerSch_numba(P, verts_ico, faces_ico, rho)
         t_ico = time.time() - t0
         time_ico.append(t_ico)
 
@@ -100,7 +100,7 @@ for z0 in z_levels:
 
         t0 = time.time()
         V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
-            VecWerSch_numba(P, verts_geo, faces_geo, rho)
+            WerSch_numba(P, verts_geo, faces_geo, rho)
         t_geo = time.time() - t0
         time_geo.append(t_geo)
 

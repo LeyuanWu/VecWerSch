@@ -73,7 +73,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 7
+nsub_max = 8
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -115,7 +115,7 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
 
         t0 = time.time()
         V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i = \
-            VecWerSch_numba_onthefly(P, verts_ico, faces_ico, rho)
+            WerSch_numba(P, verts_ico, faces_ico, rho)
         t_ico = time.time() - t0
         time_ico.append(t_ico)
         
@@ -152,7 +152,7 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
 
         t0 = time.time()
         V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
-            VecWerSch_numba_onthefly(P, verts_geo, faces_geo, rho)
+            WerSch_numba(P, verts_geo, faces_geo, rho)
         t_geo = time.time() - t0
         time_geo.append(t_geo)
         
@@ -260,23 +260,23 @@ plt.savefig(f"IcoGeoSphere_Rs_nsub{nsub_max-1}.png", dpi=300, bbox_inches='tight
 # plt.show()
 
 # %% Save results
-import pickle
-import os
+# import pickle
+# import os
 
-save_dir = "Results"
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
-save_filename = os.path.join(save_dir, f"error_data_nsub{nsub_max-1}.pkl")
-save_data = {
-    'all_err_ico': all_err_ico,
-    'all_err_geo': all_err_geo,
-    'all_time_ico': all_time_ico,
-    'all_time_geo': all_time_geo
-}
-with open(save_filename, 'wb') as f:
-    pickle.dump(save_data, f, protocol=pickle.HIGHEST_PROTOCOL)
-print(f"\nData saved to: {save_filename}")
-# %% End time
-print("="*80)
-print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
-print("="*80)
+# save_dir = "Results"
+# if not os.path.exists(save_dir):
+#     os.makedirs(save_dir)
+# save_filename = os.path.join(save_dir, f"error_data_nsub{nsub_max-1}.pkl")
+# save_data = {
+#     'all_err_ico': all_err_ico,
+#     'all_err_geo': all_err_geo,
+#     'all_time_ico': all_time_ico,
+#     'all_time_geo': all_time_geo
+# }
+# with open(save_filename, 'wb') as f:
+#     pickle.dump(save_data, f, protocol=pickle.HIGHEST_PROTOCOL)
+# print(f"\nData saved to: {save_filename}")
+# # %% End time
+# print("="*80)
+# print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+# print("="*80)

@@ -4,8 +4,8 @@
    - [x] Polyhedral gravitation and vectorized code design [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/Theory_Method.ipynb)
 2. Numerical Examples
    - [x] Two methods to approximate a sphere with a polyhedron: (1) Recursive subdivision of an icosahedron (icosphere); (2) Triangulated regular geographic grid (geosphere) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Sphere_Polyhedron.ipynb)
-   - [ ] Icosphere/geosphere gravity forward modelling (Local Cartesian Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Local.ipynb)
-   - [ ] Icosphere/geosphere gravity forward modelling (Global Spherical Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
+   - [x] Icosphere/geosphere gravity forward modelling (Local Cartesian Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Local.ipynb)
+   - [x] Icosphere/geosphere gravity forward modelling (Global Spherical Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
    - [x] EROS gravity computation (anomaly on a plane) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
    - [x] Validating Green's third identity for gravity potential on asteroid EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThridID_Computation.ipynb)
 

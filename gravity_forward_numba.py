@@ -109,15 +109,16 @@ def _Faces2Edges(Faces):
     - Ensure that all vertex indices in Faces is < 2,147,483,647 (max int32)
       to avoid overflow. This is sufficient for most practical meshes.
     """
+
     Faces    = np.asarray(Faces, dtype=np.int32);
     Nf       = Faces.shape[0];
-    face_ids = np.repeat(np.arange(Nf), 3);
+    face_ids = np.repeat(np.arange(Nf, dtype=np.int32), 3);
     v_sta    = Faces.flatten();
     v_end    = np.roll(Faces, -1, axis=1).flatten();
-    ccw      = np.where(v_sta > v_end, -1, 1);
-    temp     = np.stack((np.minimum(v_sta, v_end), 
-                         np.maximum(v_sta, v_end),
-                         face_ids, ccw), axis=1);
+    e0 = np.minimum(v_sta, v_end).astype(np.int32);
+    e1 = np.maximum(v_sta, v_end).astype(np.int32);
+    ccw      = np.where(v_sta > v_end, -1, 1).astype(np.int32);
+    temp     = np.column_stack((e0, e1, face_ids, ccw));
     sorted   = temp[np.lexsort((temp[:,3], temp[:,1], temp[:,0]))];
     Edges    = np.column_stack((sorted[1::2,:3], sorted[0::2,2]));
 
@@ -125,17 +126,61 @@ def _Faces2Edges(Faces):
 
 
 @njit(parallel=True, fastmath=True, nogil=True)
+def _compute_nf_numba(Verts, Faces):
+    """
+    Compute unit face normals for a triangle mesh.
+    
+    Parameters
+    ----------
+    Verts : (Nv, 3) float64
+    Faces : (Nf, 3) int32
+    
+    Returns
+    -------
+    hnf    : (Nf, 3) float64 — unit normals
+    mag_nf : (Nf,) float64 — magnitude equal 2 * Area of triangle
+    """
+    Nf = Faces.shape[0]
+    hnf = np.empty((Nf, 3), dtype=np.float64)
+    mag_nf = np.empty((Nf,), dtype=np.float64)
+
+    for j in prange(Nf):
+        v0, v1, v2 = Faces[j, 0], Faces[j, 1], Faces[j, 2]
+
+        Ax, Ay, Az = Verts[v0, 0], Verts[v0, 1], Verts[v0, 2]
+        Bx, By, Bz = Verts[v1, 0], Verts[v1, 1], Verts[v1, 2]
+        Cx, Cy, Cz = Verts[v2, 0], Verts[v2, 1], Verts[v2, 2]
+
+        ABx, ABy, ABz = Bx - Ax, By - Ay, Bz - Az
+        BCx, BCy, BCz = Cx - Bx, Cy - By, Cz - Bz
+
+        nx = ABy * BCz - ABz * BCy
+        ny = ABz * BCx - ABx * BCz
+        nz = ABx * BCy - ABy * BCx
+
+        mag = (nx*nx + ny*ny + nz*nz)**0.5
+
+        hnf[j, 0] = nx / mag
+        hnf[j, 1] = ny / mag
+        hnf[j, 2] = nz / mag
+
+        mag_nf[j] = mag
+
+    return hnf, mag_nf
+
+
+@njit(parallel=True, fastmath=True, nogil=True)
 def _compute_gravity_numba(
-    P,
-    A_f, B_f, C_f, hnf, mag_nf, A_dot_nf,
-    A_e, B_e, mag_eAB,
-    hn_pos, hn_neg, hnAB, hnBA,
-    A_dot_hn_pos, A_dot_hn_neg, A_dot_hnAB, A_dot_hnBA,
+    P, Verts, Faces, Edges,
+    hnf, mag_nf,
     G, rho, km2m, si2mg, si2eot
 ):
+
     M = P.shape[0]
-    V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz \
-        = [np.zeros(M) for _ in range(10)]
+    V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz = [np.zeros(M) for _ in range(10)]
+
+    Nf = Faces.shape[0]
+    Ne = Edges.shape[0]
 
     for i in prange(M):
         px, py, pz = P[i, 0], P[i, 1], P[i, 2]
@@ -147,301 +192,81 @@ def _compute_gravity_numba(
         Txx_e = Tyy_e = Tzz_e = Txy_e = Txz_e = Tyz_e = 0.0
 
         # --- Face loop ---
-        Nf = A_f.shape[0]
         for j in range(Nf):
-            ax = A_f[j, 0] - px; ay = A_f[j, 1] - py; az = A_f[j, 2] - pz
-            bx = B_f[j, 0] - px; by = B_f[j, 1] - py; bz = B_f[j, 2] - pz
-            cx = C_f[j, 0] - px; cy = C_f[j, 1] - py; cz = C_f[j, 2] - pz
+            v0, v1, v2 = Faces[j, 0], Faces[j, 1], Faces[j, 2]
 
-            rPA = (ax*ax + ay*ay + az*az)**0.5
-            rPB = (bx*bx + by*by + bz*bz)**0.5
-            rPC = (cx*cx + cy*cy + cz*cz)**0.5
+            Ax, Ay, Az = Verts[v0, 0], Verts[v0, 1], Verts[v0, 2]
+            Bx, By, Bz = Verts[v1, 0], Verts[v1, 1], Verts[v1, 2]
+            Cx, Cy, Cz = Verts[v2, 0], Verts[v2, 1], Verts[v2, 2]
 
-            rPA_dot_rPB = ax*bx + ay*by + az*bz
-            rPB_dot_rPC = bx*cx + by*cy + bz*cz
-            rPC_dot_rPA = cx*ax + cy*ay + cz*az
+            PAx, PAy, PAz = Ax - px, Ay - py, Az - pz
+            PBx, PBy, PBz = Bx - px, By - py, Bz - pz
+            PCx, PCy, PCz = Cx - px, Cy - py, Cz - pz
+
+            rPA = (PAx*PAx + PAy*PAy + PAz*PAz)**0.5
+            rPB = (PBx*PBx + PBy*PBy + PBz*PBz)**0.5
+            rPC = (PCx*PCx + PCy*PCy + PCz*PCz)**0.5
+
+            rPA_dot_rPB = PAx*PBx + PAy*PBy + PAz*PBz
+            rPB_dot_rPC = PBx*PCx + PBy*PCy + PBz*PCz
+            rPC_dot_rPA = PCx*PAx + PCy*PAy + PCz*PAz
+
+            hnfx, hnfy, hnfz = hnf[j, 0], hnf[j, 1], hnf[j, 2]
 
             denom = rPA*rPB*rPC + rPA*rPB_dot_rPC + rPB*rPC_dot_rPA + rPC*rPA_dot_rPB
-            mixProd = A_dot_nf[j] - mag_nf[j] * (px*hnf[j,0] + py*hnf[j,1] + pz*hnf[j,2])
+
+            mixProd = mag_nf[j] * (PAx*hnfx + PAy*hnfy + PAz*hnfz)
             wf = 2.0 * np.arctan2(mixProd, denom)
             rf_dot_hnf = mixProd / mag_nf[j]
 
             Vf += rf_dot_hnf * rf_dot_hnf * wf
-            gxf += hnf[j,0] * rf_dot_hnf * wf
-            gyf += hnf[j,1] * rf_dot_hnf * wf
-            gzf += hnf[j,2] * rf_dot_hnf * wf
+            gxf += hnfx * rf_dot_hnf * wf
+            gyf += hnfy * rf_dot_hnf * wf
+            gzf += hnfz * rf_dot_hnf * wf
 
-            Txx_f += hnf[j,0] * hnf[j,0] * wf
-            Tyy_f += hnf[j,1] * hnf[j,1] * wf
-            Tzz_f += hnf[j,2] * hnf[j,2] * wf
-            Txy_f += hnf[j,0] * hnf[j,1] * wf
-            Txz_f += hnf[j,0] * hnf[j,2] * wf
-            Tyz_f += hnf[j,1] * hnf[j,2] * wf
+            Txx_f += hnfx * hnfx * wf
+            Tyy_f += hnfy * hnfy * wf
+            Tzz_f += hnfz * hnfz * wf
+            Txy_f += hnfx * hnfy * wf
+            Txz_f += hnfx * hnfz * wf
+            Tyz_f += hnfy * hnfz * wf
 
         # --- Edge loop ---
-        Ne = A_e.shape[0]
         for k in range(Ne):
-            ax = A_e[k, 0] - px; ay = A_e[k, 1] - py; az = A_e[k, 2] - pz
-            bx = B_e[k, 0] - px; by = B_e[k, 1] - py; bz = B_e[k, 2] - pz
+            v0, v1 = Edges[k, 0], Edges[k, 1]
+            f_pos, f_neg = Edges[k, 2], Edges[k, 3]
+            
+            Ax, Ay, Az = Verts[v0, 0], Verts[v0, 1], Verts[v0, 2]
+            Bx, By, Bz = Verts[v1, 0], Verts[v1, 1], Verts[v1, 2]
 
-            rPA = (ax*ax + ay*ay + az*az)**0.5
-            rPB = (bx*bx + by*by + bz*bz)**0.5
-            sum_r = rPA + rPB
-            Le = np.log((sum_r + mag_eAB[k]) / (sum_r - mag_eAB[k]))
-
-            # Dot products: re · h = A·h - P·h
-            re_dot_hn_pos = A_dot_hn_pos[k] - (px * hn_pos[k,0] + py * hn_pos[k,1] + pz * hn_pos[k,2])
-            re_dot_hnAB   = A_dot_hnAB[k]  - (px * hnAB[k,0]  + py * hnAB[k,1]  + pz * hnAB[k,2])
-            re_dot_hn_neg = A_dot_hn_neg[k] - (px * hn_neg[k,0] + py * hn_neg[k,1] + pz * hn_neg[k,2])
-            re_dot_hnBA   = A_dot_hnBA[k]  - (px * hnBA[k,0]  + py * hnBA[k,1]  + pz * hnBA[k,2])
-
-
-            rEr = re_dot_hn_pos * re_dot_hnAB + re_dot_hn_neg * re_dot_hnBA
-
-            Ve += rEr * Le
-            gxe += (hn_pos[k,0] * re_dot_hnAB + hn_neg[k,0] * re_dot_hnBA) * Le
-            gye += (hn_pos[k,1] * re_dot_hnAB + hn_neg[k,1] * re_dot_hnBA) * Le
-            gze += (hn_pos[k,2] * re_dot_hnAB + hn_neg[k,2] * re_dot_hnBA) * Le
-
-            Txx_e += (hn_pos[k,0] * hnAB[k,0] + hn_neg[k,0] * hnBA[k,0]) * Le
-            Tyy_e += (hn_pos[k,1] * hnAB[k,1] + hn_neg[k,1] * hnBA[k,1]) * Le
-            Tzz_e += (hn_pos[k,2] * hnAB[k,2] + hn_neg[k,2] * hnBA[k,2]) * Le
-            Txy_e += (hn_pos[k,0] * hnAB[k,1] + hn_neg[k,0] * hnBA[k,1]) * Le
-            Txz_e += (hn_pos[k,0] * hnAB[k,2] + hn_neg[k,0] * hnBA[k,2]) * Le
-            Tyz_e += (hn_pos[k,1] * hnAB[k,2] + hn_neg[k,1] * hnBA[k,2]) * Le
-
-        scale_V = 0.5 * G * rho * (km2m * km2m)
-        scale_g = G * rho * km2m * si2mg
-        scale_T = G * rho * si2eot
-
-        V[i]  = scale_V * (Ve - Vf)
-        gx[i] = scale_g * (gxf - gxe)
-        gy[i] = scale_g * (gyf - gye)
-        gz[i] = scale_g * (gzf - gze)
-        Txx[i] = scale_T * (Txx_e - Txx_f)
-        Tyy[i] = scale_T * (Tyy_e - Tyy_f)
-        Tzz[i] = scale_T * (Tzz_e - Tzz_f)
-        Txy[i] = scale_T * (Txy_e - Txy_f)
-        Txz[i] = scale_T * (Txz_e - Txz_f)
-        Tyz[i] = scale_T * (Tyz_e - Tyz_f)
-
-    return V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz
-
-
-def VecWerSch_numba(P, Q, If, rho):
-    """
-    Computes the gravitational potential (and optionally field and gradient) at multiple observation points 
-    due to a homogeneous polyhedral body using the vectorized formulation of the Werner-Schmidt method.
-
-    This implementation follows the analytical expressions derived from potential theory for a constant-density 
-    polyhedron. It leverages efficient NumPy vectorization to compute contributions from all faces and edges 
-    simultaneously across many observation points.
-
-    Reference:
-    Werner, R.A., Scheeres, D.J. Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation    representations of asteroid 4769 Castalia. Celestial Mech Dyn Astr 65, 313-344 (1996). https://doi.org/10.1007/BF00053511
-
-    Args:
-        P (numpy.ndarray): Array of shape (M, 3) containing the Cartesian coordinates [x, y, z] 
-                           of M observation (computation) points where the gravity field is evaluated.
-        Q (numpy.ndarray): Array of shape (Nv, 3) listing the 3D coordinates of N unique vertices 
-                           defining the polyhedron geometry.
-        If (numpy.ndarray): Integer array of shape (Nf, 3) specifying the vertex indices of F triangular faces. 
-                            Each row [i, j, k] corresponds to a face with vertices Q[i], Q[j], Q[k], 
-                            oriented consistently (outward-pointing normal via right-hand rule).
-        rho (float): Constant density of the polyhedron in kg/m³. 
-                                     
-    Returns:
-        V (numpy.ndarray) : Gravitational Potential (GP) at each point in P.
-        gx, gy, gz (numpy.ndarray) : Gravitational Vector (GV).
-        Txx, Tyy, Tzz, Txy, Txz, Tyz (numpy.ndarray): Gravity Gradient Tensor (GGT)
-
-    Units:
-        length in km, density in kg/m^3,
-        GP in m^2/s^2, GV in mGal, GGT in 1e-9/s^2 (Eotvos)
-    """
-
-    G = 6.67430e-11
-    km2m = 1.e3
-    si2mg = 1.e5
-    si2eot = 1.e9
-
-    P = np.asarray(P, dtype=np.float64)
-    Q = np.asarray(Q, dtype=np.float64)
-    If = np.asarray(If, dtype=np.int32)
-
-    # --- Face geometry ---
-    A_f = Q[If[:, 0]]
-    B_f = Q[If[:, 1]]
-    C_f = Q[If[:, 2]]
-
-    AB = B_f - A_f
-    BC = C_f - B_f
-    nf = np.empty_like(A_f)
-    nf[:, 0] = AB[:, 1] * BC[:, 2] - AB[:, 2] * BC[:, 1]
-    nf[:, 1] = AB[:, 2] * BC[:, 0] - AB[:, 0] * BC[:, 2]
-    nf[:, 2] = AB[:, 0] * BC[:, 1] - AB[:, 1] * BC[:, 0]
-
-    mag_nf = np.sqrt(np.sum(nf * nf, axis=1))
-    hnf = nf / mag_nf[:, None]
-    A_dot_nf = np.sum(A_f * nf, axis=1)
-
-    # --- Edge geometry ---
-    Ie = _Faces2Edges(If)  # (Ne, 4)
-    A_e = Q[Ie[:, 0]]
-    B_e = Q[Ie[:, 1]]
-    eAB = B_e - A_e
-    mag_eAB = np.sqrt(np.sum(eAB * eAB, axis=1))
-
-    f_pos = Ie[:, 2]
-    f_neg = Ie[:, 3]
-    hn_pos = hnf[f_pos]
-    hn_neg = hnf[f_neg]
-
-    heAB = eAB / mag_eAB[:, None]
-
-    # Manual cross: heAB × hn_pos
-    hnAB = np.empty_like(hn_pos)
-    hnAB[:, 0] = heAB[:,1] * hn_pos[:,2] - heAB[:,2] * hn_pos[:,1]
-    hnAB[:, 1] = heAB[:,2] * hn_pos[:,0] - heAB[:,0] * hn_pos[:,2]
-    hnAB[:, 2] = heAB[:,0] * hn_pos[:,1] - heAB[:,1] * hn_pos[:,0]
-
-    # Manual cross: (-heAB) × hn_neg
-    hnBA = np.empty_like(hn_neg)
-    hnBA[:, 0] = -heAB[:,1] * hn_neg[:,2] + heAB[:,2] * hn_neg[:,1]
-    hnBA[:, 1] = -heAB[:,2] * hn_neg[:,0] + heAB[:,0] * hn_neg[:,2]
-    hnBA[:, 2] = -heAB[:,0] * hn_neg[:,1] + heAB[:,1] * hn_neg[:,0]
-
-    A_dot_hn_pos = np.sum(A_e * hn_pos, axis=1)
-    A_dot_hn_neg = np.sum(A_e * hn_neg, axis=1)
-    A_dot_hnAB  = np.sum(A_e * hnAB, axis=1)
-    A_dot_hnBA  = np.sum(A_e * hnBA, axis=1)
-
-    # --- Compute ---
-    return _compute_gravity_numba(
-        P, A_f, B_f, C_f, hnf, mag_nf, A_dot_nf,
-        A_e, B_e, mag_eAB,
-        hn_pos, hn_neg, hnAB, hnBA,
-        A_dot_hn_pos, A_dot_hn_neg, A_dot_hnAB, A_dot_hnBA,
-        G, rho, km2m, si2mg, si2eot
-    )
-
-
-@njit(parallel=True, fastmath=True, nogil=True)
-def _compute_gravity_numba_onthefly(
-    P,
-    Q, If, Ie,
-    hnf, mag_nf, A_dot_nf,
-    G, rho, km2m, si2mg, si2eot
-):
-    """
-    Memory-efficient gravity computation.
-    - Face normals (hnf, A_dot_nf) are precomputed.
-    - Edge geometry is computed on-the-fly.
-    """
-    M = P.shape[0]
-    V, gx, gy, gz, Txx, Tyy, Tzz, Txy, Txz, Tyz = [np.zeros(M) for _ in range(10)]
-
-    Nf = If.shape[0]
-    Ne = Ie.shape[0]
-
-    for i in prange(M):
-        px, py, pz = P[i, 0], P[i, 1], P[i, 2]
-
-        Vf = Ve = 0.0
-        gxf = gyf = gzf = 0.0
-        gxe = gye = gze = 0.0
-        Txx_f = Tyy_f = Tzz_f = Txy_f = Txz_f = Tyz_f = 0.0
-        Txx_e = Tyy_e = Tzz_e = Txy_e = Txz_e = Tyz_e = 0.0
-
-        # --- Face loop (using precomputed hnf, A_dot_nf) ---
-        for j in range(Nf):
-            ax = Q[If[j, 0], 0] - px
-            ay = Q[If[j, 0], 1] - py
-            az = Q[If[j, 0], 2] - pz
-
-            bx = Q[If[j, 1], 0] - px
-            by = Q[If[j, 1], 1] - py
-            bz = Q[If[j, 1], 2] - pz
-
-            cx = Q[If[j, 2], 0] - px
-            cy = Q[If[j, 2], 1] - py
-            cz = Q[If[j, 2], 2] - pz
-
-            rPA = (ax*ax + ay*ay + az*az)**0.5
-            rPB = (bx*bx + by*by + bz*bz)**0.5
-            rPC = (cx*cx + cy*cy + cz*cz)**0.5
-
-            rPA_dot_rPB = ax*bx + ay*by + az*bz
-            rPB_dot_rPC = bx*cx + by*cy + bz*cz
-            rPC_dot_rPA = cx*ax + cy*ay + cz*az
-
-            denom = rPA*rPB*rPC + rPA*rPB_dot_rPC + rPB*rPC_dot_rPA + rPC*rPA_dot_rPB
-            mixProd = A_dot_nf[j] - mag_nf[j] * (px*hnf[j,0] + py*hnf[j,1] + pz*hnf[j,2])
-            wf = 2.0 * np.arctan2(mixProd, denom)
-            rf_dot_hnf = mixProd / mag_nf[j]
-
-            Vf += rf_dot_hnf * rf_dot_hnf * wf
-            gxf += hnf[j,0] * rf_dot_hnf * wf
-            gyf += hnf[j,1] * rf_dot_hnf * wf
-            gzf += hnf[j,2] * rf_dot_hnf * wf
-
-            Txx_f += hnf[j,0] * hnf[j,0] * wf
-            Tyy_f += hnf[j,1] * hnf[j,1] * wf
-            Tzz_f += hnf[j,2] * hnf[j,2] * wf
-            Txy_f += hnf[j,0] * hnf[j,1] * wf
-            Txz_f += hnf[j,0] * hnf[j,2] * wf
-            Tyz_f += hnf[j,1] * hnf[j,2] * wf
-
-        # --- Edge loop (on-the-fly geometry) ---
-        for k in range(Ne):
-            v0 = Ie[k, 0]
-            v1 = Ie[k, 1]
-            f_pos = Ie[k, 2]
-            f_neg = Ie[k, 3]
-
-            # Edge vector: B - A
-            ABx = Q[v1, 0] - Q[v0, 0]
-            ABy = Q[v1, 1] - Q[v0, 1]
-            ABz = Q[v1, 2] - Q[v0, 2]
+            ABx, ABy, ABz = Bx - Ax, By - Ay, Bz - Az
             magAB = (ABx*ABx + ABy*ABy + ABz*ABz)**0.5
-            heABx = ABx / magAB
-            heABy = ABy / magAB
-            heABz = ABz / magAB
+            heABx, heABy, heABz = ABx / magAB, ABy / magAB, ABz / magAB
 
-            # Vector from P to A
-            ax = Q[v0, 0] - px
-            ay = Q[v0, 1] - py
-            az = Q[v0, 2] - pz
-            rPA = (ax*ax + ay*ay + az*az)**0.5
+            PAx, PAy, PAz = Ax - px, Ay - py, Az - pz
+            PBx, PBy, PBz = Bx - px, By - py, Bz - pz
 
-            # Vector from P to B
-            bx = Q[v1, 0] - px
-            by = Q[v1, 1] - py
-            bz = Q[v1, 2] - pz
-            rPB = (bx*bx + by*by + bz*bz)**0.5
+            rPA = (PAx*PAx + PAy*PAy + PAz*PAz)**0.5
+            rPB = (PBx*PBx + PBy*PBy + PBz*PBz)**0.5
 
             sum_r = rPA + rPB
             Le = np.log((sum_r + magAB) / (sum_r - magAB))
 
-            # Get face normals
             hn_pos_x, hn_pos_y, hn_pos_z = hnf[f_pos, 0], hnf[f_pos, 1], hnf[f_pos, 2]
             hn_neg_x, hn_neg_y, hn_neg_z = hnf[f_neg, 0], hnf[f_neg, 1], hnf[f_neg, 2]
 
-            # Compute hnAB = heAB x hn_pos
             hnAB_x = heABy * hn_pos_z - heABz * hn_pos_y
             hnAB_y = heABz * hn_pos_x - heABx * hn_pos_z
             hnAB_z = heABx * hn_pos_y - heABy * hn_pos_x
 
-            # Compute hnBA = (-heAB) x hn_neg 
             hnBA_x = -(heABy * hn_neg_z - heABz * hn_neg_y)
             hnBA_y = -(heABz * hn_neg_x - heABx * hn_neg_z)
             hnBA_z = -(heABx * hn_neg_y - heABy * hn_neg_x)
 
-            # Dot products: re · h = (A - P)·h
-            re_dot_hn_pos = ax*hn_pos_x + ay*hn_pos_y + az*hn_pos_z
-            re_dot_hnAB   = ax*hnAB_x   + ay*hnAB_y   + az*hnAB_z
-            re_dot_hn_neg = ax*hn_neg_x + ay*hn_neg_y + az*hn_neg_z
-            re_dot_hnBA   = ax*hnBA_x   + ay*hnBA_y   + az*hnBA_z
+            re_dot_hn_pos = PAx*hn_pos_x + PAy*hn_pos_y + PAz*hn_pos_z
+            re_dot_hnAB   = PAx*hnAB_x   + PAy*hnAB_y   + PAz*hnAB_z
+            re_dot_hn_neg = PAx*hn_neg_x + PAy*hn_neg_y + PAz*hn_neg_z
+            re_dot_hnBA   = PAx*hnBA_x   + PAy*hnBA_y   + PAz*hnBA_z
 
             rEr = re_dot_hn_pos * re_dot_hnAB + re_dot_hn_neg * re_dot_hnBA
 
@@ -475,42 +300,54 @@ def _compute_gravity_numba_onthefly(
     return V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz
 
 
-def VecWerSch_numba_onthefly(P, Q, If, rho):
+def WerSch_numba(P, Verts, Faces, rho):
     """
-    Memory-efficient Werner-Schmidt gravity for large meshes.
-    Only precomputes face normals and edge topology.
+    Computes the gravitational potential (and optionally field and gradient) at multiple observation points 
+    due to a homogeneous polyhedral body using the formulation of the Werner-Schmidt method.
+
+    Reference:
+    Werner, R.A., Scheeres, D.J. Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation
+    representations of asteroid 4769 Castalia. Celestial Mech Dyn Astr 65, 313-344 (1996). https://doi.org/10.1007/BF00053511
+
+    Args:
+        P (numpy.ndarray): Array of shape (M, 3) containing the Cartesian coordinates [x, y, z] 
+                           of M observation (computation) points where the gravity field is evaluated.
+        Verts (numpy.ndarray): Array of shape (Nv, 3) listing the 3D coordinates of N unique vertices 
+                           defining the polyhedron geometry.
+        Faces (numpy.ndarray): Integer array of shape (Nf, 3) specifying the vertex indices of F triangular faces. 
+                            Each row [i, j, k] corresponds to a face with vertices Verts[i], Verts[j], Verts[k], 
+                            oriented consistently (outward-pointing normal via right-hand rule).
+        rho (float): Constant density of the polyhedron in kg/m^3. 
+                                     
+    Returns:
+        V (numpy.ndarray) : Gravitational Potential (GP) at each point in P.
+        gx, gy, gz (numpy.ndarray) : Gravitational Vector (GV).
+        Txx, Tyy, Tzz, Txy, Txz, Tyz (numpy.ndarray): Gravity Gradient Tensor (GGT)
+
+    Units:
+        length in km, density in kg/m^3,
+        GP in m^2/s^2, GV in mGal, GGT in 1e-9/s^2 (Eotvos)
     """
+
     G = 6.67430e-11
     km2m = 1.e3
     si2mg = 1.e5
     si2eot = 1.e9
 
     P = np.asarray(P, dtype=np.float64)
-    Q = np.asarray(Q, dtype=np.float64)
-    If = np.asarray(If, dtype=np.int32)
+    Verts = np.asarray(Verts, dtype=np.float64)
+    Faces = np.asarray(Faces, dtype=np.int32)
 
-    # --- Precompute face normals (essential) ---
-    A_f = Q[If[:, 0]]
-    B_f = Q[If[:, 1]]
-    C_f = Q[If[:, 2]]
+    # --- Edge topology ---
+    Edges = _Faces2Edges(Faces)  # (Ne, 4): [v0, v1, f_ccw, f_cw]
 
-    AB = B_f - A_f
-    BC = C_f - B_f
-    nf = np.empty_like(A_f)
-    nf[:, 0] = AB[:, 1] * BC[:, 2] - AB[:, 2] * BC[:, 1]
-    nf[:, 1] = AB[:, 2] * BC[:, 0] - AB[:, 0] * BC[:, 2]
-    nf[:, 2] = AB[:, 0] * BC[:, 1] - AB[:, 1] * BC[:, 0]
-
-    mag_nf = np.sqrt(np.sum(nf * nf, axis=1))
-    hnf = nf / mag_nf[:, None]
-    A_dot_nf = np.sum(A_f * nf, axis=1)
-
-    # --- Edge topology only (no geometry) ---
-    Ie = _Faces2Edges(If)  # (Ne, 4): [v0, v1, f_ccw, f_cw]
+    # --- Precompute face normals ---
+    hnf, mag_nf = _compute_nf_numba(Verts, Faces)
 
     # --- Compute gravity ---
-    return _compute_gravity_numba_onthefly(
-        P, Q, If, Ie, hnf, mag_nf, A_dot_nf,
+    return _compute_gravity_numba(
+        P, Verts, Faces, Edges, 
+        hnf, mag_nf,
         G, rho, km2m, si2mg, si2eot
     )
 
