@@ -6,13 +6,14 @@ import pandas as pd
 import pyshtools as pysh
 import pyshtools.constants.Moon as cstMoon
 import pygmt
+import pyvista as pv
 import time
 # %% 
 # # ! Gravity of Moon
 ######## * SHGravCoeffs
-lmax = 1500
+lmax_grav = 1500
 clm_grav_moon = pysh.SHGravCoeffs.from_file('jggrx_1500e_sha.tab', 
-                                            lmax=lmax, 
+                                            lmax=lmax_grav, 
                                             header_units='km', 
                                             errors=True,
                                             omega=cstMoon.angular_velocity.value, 
@@ -39,13 +40,13 @@ print(xr_grd_grav_moon)
 # %% 
 # # ! Shape of Moon
 ######## * Shape
-res_topo = 0.05
 clm_shp_moon = pysh.SHCoeffs.from_file('Moon_shape_1439.sh', 
                                        lmax=1439, 
                                        name='LOLA_shape (Moon)',
                                        units='m', format='bshc')
+res_topo = 0.5
 grd_shp_moon = clm_shp_moon.expand(lmax=int(90/res_topo)-1,
-                                   lmax_calc=1439)
+                                   lmax_calc=100)
 grd_topo_moon = grd_shp_moon/1.e3 - clm_grav_moon.r0/1.e3
 # %% 
 # # ! Computation of topographic potential: Spectral-domain 
@@ -56,9 +57,9 @@ clm_topograv_moon = pysh.SHGravCoeffs.from_shape(shape=clm_shp_moon,
                                                  rho=2560.0,
                                                  gm=clm_grav_moon.gm,
                                                  nmax=nmax,
-                                                 lmax=1439,
-                                                 lmax_grid=1439,
-                                                 lmax_calc=1439,
+                                                 lmax=100,
+                                                 lmax_grid=100,
+                                                 lmax_calc=100,
                                                  name='LOLA_Topo_Grav (Moon)',
                                                  backend='ducc',
                                                  nthreads=nthreads)
@@ -66,27 +67,69 @@ tc = time.time() - t0
 print(f"When nthreads={nthreads}, nmax={nmax} --> time cost {tc:.2f} seconds")
 # %% 
 # # ! Expand & Mapping
-res_topograv = 0.05 # degree
+res_topograv = 0.5 # degree
 grd_grav_moon = clm_topograv_moon.expand(a=r_eval,
                                          f=0.0,
                                          lmax=int(90/res_topograv)-1, 
-                                         lmax_calc=1439)
+                                         lmax_calc=100)
 print('*'*32+'\n' + 'Class SHGravGrid')
 print(grd_grav_moon)
-gz = -1.e5 * grd_grav_moon.rad
+gz_topo = -1.e5 * grd_grav_moon.rad
 
-fig = pygmt.Figure()
-gz.plotgmt(fig=fig,
-           projection='mollweide',
-           central_longitude=-90.,
-           grid=[30, 30],
-           tick_interval=None,
-           cmap='vik',
-           cmap_limits=[-800, 800],
-           colorbar='bottom',
-           cb_triangles='both',
-           cb_label='Topographic radial gravity (mGal)',
-           cb_tick_interval=200,
-           cb_minor_tick_interval=100,
-           shading=grd_topo_moon)
-fig.show(width=800)
+# fig = pygmt.Figure()
+# gz_topo.plotgmt(fig=fig,
+#                 projection='mollweide',
+#                 central_longitude=-90.,
+#                 grid=[30, 30],
+#                 tick_interval=None,
+#                 cmap='vik',
+#                 cmap_limits=[-800, 800],
+#                 colorbar='bottom',
+#                 cb_triangles='both',
+#                 cb_label='Topographic radial gravity (mGal)',
+#                 cb_tick_interval=200,
+#                 cb_minor_tick_interval=100,
+#                 shading=grd_topo_moon)
+# fig.show(width=800)
+# %% 
+# # ! Computation of topographic potential: Spatial-domain 
+mesh_shp_moon = pv.Sphere(radius=1.0, center=(0.0, 0.0, 0.0),
+                          theta_resolution=grd_shp_moon.nlon-1,
+                          phi_resolution=grd_shp_moon.nlat)
+[LON, LAT] = np.meshgrid(grd_shp_moon.lons(), grd_shp_moon.lats())
+RTOPO = 20 * (grd_shp_moon.data - 1738000) + 1738000
+X = RTOPO * np.cos(np.deg2rad(LAT)) * np.cos(np.deg2rad(LON))
+Y = RTOPO * np.cos(np.deg2rad(LAT)) * np.sin(np.deg2rad(LON))
+Z = RTOPO * np.sin(np.deg2rad(LAT))
+
+pts_topo = np.column_stack((X[1:-1,:-1].flatten(order='F'),
+                            Y[1:-1,:-1].flatten(order='F'),
+                            Z[1:-1,:-1].flatten(order='F')))
+north_pole = np.array([X[0,0], Y[0,0], Z[0,0]]);
+south_pole = np.array([X[-1,0], Y[-1,0], Z[-1,0]]);
+Verts = np.insert(pts_topo, 0, np.vstack([north_pole, south_pole]), axis=0)
+mesh_shp_moon.points = Verts
+Faces = mesh_shp_moon.regular_faces
+
+
+point_labels = [str(i) for i in range(mesh_shp_moon.n_points)]
+pl = pv.Plotter()
+pl.add_mesh(mesh_shp_moon)
+pl.view_isometric()
+pl.show()
+
+# t0 = time.time()
+# V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
+#     WerSch_numba(P, Verts, Faces, rho)
+# t_geo = time.time() - t0
+# time_geo.append(t_geo        
+# # Transform numerical results to NED
+# gN_geo, gE_geo, gD_geo, TNN_geo, TNE_geo, TND_geo, TEE_geo, TED_geo, TDD_geo = \
+#     rotate_vec_ten_ecef2ned(
+#         lon_rad, lat_rad,
+#         gx_g, gy_g, gz_g,
+#         Txx_g, Txy_g, Txz_g,
+#         Tyy_g, Tyz_g, Tzz_g
+            
+# cal_geo = [V_g, gN_geo, gE_geo, gD_geo,
+#             TNN_geo, TNE_geo, TND_geo, TEE_geo, TED_geo, TDD_geo]
