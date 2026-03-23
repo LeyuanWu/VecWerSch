@@ -116,3 +116,47 @@ dg.plotgmt(fig=fig,
            shading=grd_topo_moon)
 fig.show(width=800)
 fig.savefig('moon_dg.png', dpi=300)
+
+
+# mesh_shp_moon['Topography'] = (pts_r - clm_grav_moon.r0) / 1.e3
+
+# sargs = dict(
+#     title_font_size=20,
+#     label_font_size=16,
+#     n_labels=9,
+#     italic=True,
+#     fmt='%.1f',
+#     font_family='arial',
+#     width=1.0,
+#     height=0.05,
+#     position_x=0.0,
+#     position_y=0.05,
+#     orientation='horizontal'
+# )
+# pl = pv.Plotter()
+# mesh_front = mesh_shp_moon.copy()
+# mesh_back = mesh_shp_moon.copy()
+# mesh_back.rotate_y(180)
+# mesh_front.translate([-2, 0, 0])
+# mesh_back.translate([2, 0, 0])
+# pl.add_mesh(
+#     mesh_front,
+#     cmap='viridis',
+#     clim=[-8, 8],
+#     below_color='blue', 
+#     above_color='red',
+#     scalars='Topography'
+# )
+# pl.add_mesh(
+#     mesh_back,
+#     cmap='vik',
+#     clim=[-8, 8],
+#     below_color='blue', 
+#     above_color='red',
+#     scalars='Topography'
+# )
+# pl.add_scalar_bar(**sargs)
+# pl.show_axes()
+# pl.view_yz()
+# pl.camera.Zoom(0.8)
+# pl.show()

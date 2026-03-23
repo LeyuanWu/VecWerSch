@@ -7,6 +7,7 @@
    - [x] Icosphere/geosphere gravity forward modelling (Local Cartesian Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Local.ipynb)
    - [x] Icosphere/geosphere gravity forward modelling (Global Spherical Coordinates) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
    - [x] EROS gravity computation (anomaly on a plane) [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
-   - [x] Validating Green's third identity for gravity potential on asteroid EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThridID_Computation.ipynb)
+   - [x] Validating Green's third identity for gravity potential on asteroid EROS [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThridID_Comp.ipynb)
+   - [x] Moon's topographic gravitational potential/fields computation using Polyhedron Analytical .vs. Spherical harmonics Spectral methods [Jupyter Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Comp.ipynb)
 
 
