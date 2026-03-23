@@ -6,6 +6,7 @@ import pandas as pd
 import pyshtools as pysh
 import pyshtools.constants.Moon as cstMoon
 import pygmt
+import pyvista as pv
 # %% 
 # # ! Gravity of Moon
 ######## * SHGravCoeffs
@@ -20,12 +21,12 @@ clm_grav_moon = pysh.SHGravCoeffs.from_file('jggrx_1500e_sha.tab',
 print('*'*32+'\n' + 'Class SHGravCoeffs: ')
 print(clm_grav_moon)
 ######## * SHGravGrid
-r_eval = 1748000.0
+r_calc = 1748000.0
 #### * Expand
-res = 0.1 # degree
-grd_grav_moon = clm_grav_moon.expand(a=r_eval,
+res_grav = 0.05 # degree
+grd_grav_moon = clm_grav_moon.expand(a=r_calc,
                                      f=0.0,
-                                     lmax=int(90/res)-1, 
+                                     lmax=int(90/res_grav)-1, 
                                      lmax_calc=450)
 print('*'*32+'\n' + 'Class SHGravGrid')
 print(grd_grav_moon)
@@ -34,20 +35,19 @@ gy =  1.e5 * grd_grav_moon.phi
 gz = -1.e5 * grd_grav_moon.rad
 dg =  1.e5 * grd_grav_moon.total
 #### * Compute manually the gravity disturbance
-gz_normal = 1.e5 * clm_grav_moon.gm/r_eval**2
+gz_gamma =   1.e5 * clm_grav_moon.gm/r_calc**2
 gz_omega = - 1.e5 * clm_grav_moon.omega**2 \
-    * r_eval * np.cos(np.deg2rad(gz.lats()))**2
-g_mag = np.sqrt(gx.data**2 + gy.data**2 + gz.data**2)
-dg_rad = pysh.SHGrid.from_array(gz.data - gz_normal - gz_omega[:,np.newaxis])
-dg_mag = pysh.SHGrid.from_array(g_mag - gz_normal - gz_omega[:,np.newaxis])
+    * r_calc * np.cos(np.deg2rad(gz.lats()))**2
+g_norm = np.sqrt(gx.data**2 + gy.data**2 + gz.data**2)
+dg_rad  = pysh.SHGrid.from_array(gz.data - gz_gamma - gz_omega[:,np.newaxis])
+dg_norm = pysh.SHGrid.from_array(g_norm - gz_gamma - gz_omega[:,np.newaxis])
 dif_dg1 = dg_rad - dg
-dif_dg2 = dg_mag - dg
+dif_dg2 = dg_norm - dg
 #### * xarray
 xr_grd_grav_moon = grd_grav_moon.to_xarray()
 print('*'*32+'\n' + 'Class xarray.Dataset')
 print(xr_grd_grav_moon)
-# %% 
-# # ! Mapping
+#### * Mapping
 fig, axs = plt.subplot_mosaic([['(a)'],['(b)']], 
                                figsize=(6, 8), 
                                height_ratios=[0.45, 0.45])
@@ -72,24 +72,27 @@ df = pd.DataFrame(stats).T
 df.index.name = 'Gravity disturbance (mGal)'
 df.style.format("{:.6f}").set_properties(**{'text-align': 'center'})
 # %% 
-# # ! Shape of Moon
+# # ! Shape/Topo of Moon
+r_ref = 1738000.0
 ######## * Shape
-clm_shp_moon = pysh.SHCoeffs.from_file('Moon_shape_1439.sh', 
-                                       lmax=1439, 
+clm_shp_moon = pysh.SHCoeffs.from_file('Moon_shape_2879.sh', 
+                                       lmax=2879, 
                                        name='LOLA_shape (Moon)',
                                        units='m', format='bshc')
-grd_shp_moon = clm_shp_moon.expand(lmax=int(90/res)-1)
-grd_topo_moon = grd_shp_moon/1.e3 - clm_grav_moon.r0/1.e3
-# %% 
-# # ! Topography
+res_topo = res_grav
+lmax_pk = int(90/res_topo)-1
+grd_shp_moon = clm_shp_moon.expand(lmax=int(90/res_topo)-1,
+                                   lmax_calc=lmax_pk)
+grd_topo_moon = (grd_shp_moon - r_ref) / 1.e3
+######## * Mapping
 fig = pygmt.Figure()
 grd_topo_moon.plotgmt(fig=fig,
                       projection='mollweide',
                       central_longitude=-90.,
                       grid=[30, 30],
                       tick_interval=None,
-                      cmap='haxby',
-                      cmap_limits=[-6, 7],
+                      cmap='rainbow',
+                      cmap_limits=[-8, 8],
                       colorbar='bottom',
                       cb_triangles='both',
                       cb_label='Topography (km)',
@@ -97,7 +100,14 @@ grd_topo_moon.plotgmt(fig=fig,
                       cb_minor_tick_interval=0.5,
                       shading=grd_topo_moon)
 fig.show(width=800)
-fig.savefig('moon_topo.png', dpi=300)
+######## * Stats
+Gs = {'Topography (km)': grd_topo_moon.to_array()}
+stats = {
+    name: {'Min': arr.min(), 'Max': arr.max(),
+           'Mean': arr.mean(), 'Std': arr.std()}
+    for name, arr in Gs.items()}
+df = pd.DataFrame(stats).T
+df.style.format("{:.4f}").set_properties(**{'text-align': 'center'})
 # %% 
 # # ! Total gravity anomaly
 fig = pygmt.Figure()
@@ -115,48 +125,3 @@ dg.plotgmt(fig=fig,
            cb_minor_tick_interval=50,
            shading=grd_topo_moon)
 fig.show(width=800)
-fig.savefig('moon_dg.png', dpi=300)
-
-
-# mesh_shp_moon['Topography'] = (pts_r - clm_grav_moon.r0) / 1.e3
-
-# sargs = dict(
-#     title_font_size=20,
-#     label_font_size=16,
-#     n_labels=9,
-#     italic=True,
-#     fmt='%.1f',
-#     font_family='arial',
-#     width=1.0,
-#     height=0.05,
-#     position_x=0.0,
-#     position_y=0.05,
-#     orientation='horizontal'
-# )
-# pl = pv.Plotter()
-# mesh_front = mesh_shp_moon.copy()
-# mesh_back = mesh_shp_moon.copy()
-# mesh_back.rotate_y(180)
-# mesh_front.translate([-2, 0, 0])
-# mesh_back.translate([2, 0, 0])
-# pl.add_mesh(
-#     mesh_front,
-#     cmap='viridis',
-#     clim=[-8, 8],
-#     below_color='blue', 
-#     above_color='red',
-#     scalars='Topography'
-# )
-# pl.add_mesh(
-#     mesh_back,
-#     cmap='vik',
-#     clim=[-8, 8],
-#     below_color='blue', 
-#     above_color='red',
-#     scalars='Topography'
-# )
-# pl.add_scalar_bar(**sargs)
-# pl.show_axes()
-# pl.view_yz()
-# pl.camera.Zoom(0.8)
-# pl.show()

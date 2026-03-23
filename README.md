@@ -37,8 +37,6 @@ pip install numpy numba matplotlib pyvista
 - [x] **Polyhedral Gravitation Theory**: Comprehensive explanation of gravitational potential computation for polyhedral bodies
 - [x] **Vectorized Algorithm Design**: Efficient implementation using vector operations
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/LeyuanWu/VecWerSch/blob/main/Theory_Method.ipynb)
-
 [View Theory & Method Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/Theory_Method.ipynb)
 
 ## 🔬 Numerical Examples
