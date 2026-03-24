@@ -67,7 +67,7 @@ pip install numpy numba matplotlib pyvista
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
 
-[View Moon Topography Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Comp.ipynb)
+[View Moon Topography Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
 ## 🤝 Contributing
 
