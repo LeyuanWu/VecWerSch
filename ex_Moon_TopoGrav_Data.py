@@ -8,6 +8,7 @@ import pyshtools.constants.Moon as cstMoon
 import pygmt
 import pyvista as pv
 import time
+pv.set_jupyter_backend('static')
 # %% 
 # # ! Gravity of Moon
 ######## * SHGravCoeffs
@@ -24,7 +25,7 @@ print(clm_grav_moon)
 ######## * SHGravGrid
 r_calc = 1748000.0
 #### * Expand
-res_grav = 1.0/16 # degree
+res_grav = 1.0/8 # degree
 grd_grav_moon = clm_grav_moon.expand(a=r_calc,
                                      f=0.0,
                                      lmax=int(90/res_grav)-1, 
@@ -124,59 +125,67 @@ for i, lmax_shp in enumerate(LMAX_shp):
     topo_old = topo_new.copy()         
 # %% 
 # # ! PyVista 3D Visualization
+#### * Shape/Topo
 grd_shp_moon = clm_shp_moon.expand(lmax=719, 
                                    lmax_calc=719)
 mesh_shp_moon = pv.Sphere(radius=1.0, center=(0.0, 0.0, 0.0),
                           theta_resolution=grd_shp_moon.nlon-1,
                           phi_resolution=grd_shp_moon.nlat)
 [LON, LAT] = np.meshgrid(grd_shp_moon.lons(), grd_shp_moon.lats())
-RTOPO = grd_shp_moon.data
-X = RTOPO * np.cos(np.deg2rad(LAT)) * np.cos(np.deg2rad(LON))
-Y = RTOPO * np.cos(np.deg2rad(LAT)) * np.sin(np.deg2rad(LON))
-Z = RTOPO * np.sin(np.deg2rad(LAT))
-pts_x = X[1:-1,:-1].flatten(order='F')
-pts_y = Y[1:-1,:-1].flatten(order='F')
-pts_z = Z[1:-1,:-1].flatten(order='F')
-pts_topo = np.column_stack((pts_x, pts_y, pts_z))
-north_pole = np.array([X[0,0], Y[0,0], Z[0,0]]);
-south_pole = np.array([X[-1,0], Y[-1,0], Z[-1,0]]);
-Verts = np.insert(pts_topo, 0, np.vstack([north_pole, south_pole]), axis=0)
+R_SHP = grd_shp_moon.data
+X = R_SHP * np.cos(np.deg2rad(LAT)) * np.cos(np.deg2rad(LON))
+Y = R_SHP * np.cos(np.deg2rad(LAT)) * np.sin(np.deg2rad(LON))
+Z = R_SHP * np.sin(np.deg2rad(LAT))
+# north pole, south pole, and regular points
+pts_x = np.hstack([X[0,0], X[-1,0], X[1:-1,:-1].flatten(order='F')]) 
+pts_y = np.hstack([Y[0,0], Y[-1,0], Y[1:-1,:-1].flatten(order='F')])
+pts_z = np.hstack([Z[0,0], Z[-1,0], Z[1:-1,:-1].flatten(order='F')])
+Verts = np.column_stack((pts_x, pts_y, pts_z))
 mesh_shp_moon.points = Verts
 Faces = mesh_shp_moon.regular_faces
-pts_r = np.sqrt(np.sum(Verts**2, axis=1))
+pts_r = np.sqrt(pts_x**2 + pts_y**2 + pts_z**2)
+pts_topo = (pts_r - r_ref) / 1.e3
+mesh_shp_moon['Topography'] = pts_topo
+#### * Gravity disturbance
+pts_dg = np.hstack([dg.data[0,0], dg.data[-1,0],
+                   dg.data[1:-1,:-1].flatten(order='F')]) 
+mesh_shp_moon['FreeAirGrav'] = pts_dg
 
-mesh_shp_moon['Topography'] = (pts_r - r_ref) / 1.e3
-sargs = dict(
-    title='Topography (km)',
-    title_font_size=20,
-    label_font_size=16,
-    n_labels=9,
-    italic=True,
-    fmt='%.1f',
-    font_family='arial',
-    width=0.8,
-    height=0.1,
-    position_x=0.1,
-    position_y=0.1,
-    vertical=False)
-pl = pv.Plotter()
-mesh_front = mesh_shp_moon.translate([0, 2.e6, 0])
-mesh_back = mesh_shp_moon.rotate_z(180)
-mesh_back.translate([0, -2.e6, 0], inplace=True)
-pl.add_mesh(
-    mesh_front,
-    cmap='seismic',
-    clim=[-8, 8],
-    scalars='Topography',
-    show_scalar_bar=False)
-pl.add_mesh(
-    mesh_back,
-    cmap='seismic',
-    clim=[-8, 8],
-    scalars='Topography',
-    show_scalar_bar=False)
-pl.add_scalar_bar(**sargs)
-pl.view_yz()
-pl.camera.Zoom(1.5)
-pl.show()
-pl.screenshot("Moon_Topo_3D.png");
+Titles = ['Topography (km)', 'Free-air gravity anomaly (mGal)']
+Scalars = ['Topography', 'FreeAirGrav']
+Clims = [[-8, 8], [-500, 500]]
+N_lab = [9, 11]
+for title, scalar, clim, n_lab in zip(Titles, Scalars, Clims, N_lab):
+    sargs = dict(
+        title=title,
+        title_font_size=20,
+        label_font_size=16,
+        n_labels=n_lab,
+        italic=True,
+        fmt='%.1f',
+        font_family='arial',
+        width=0.8,
+        height=0.1,
+        position_x=0.1,
+        position_y=0.1,
+        vertical=False)
+    pl = pv.Plotter()
+    mesh_front = mesh_shp_moon.translate([0, 2.e6, 0])
+    mesh_back = mesh_shp_moon.rotate_z(180).translate([0, -2.e6, 0])
+    pl.add_mesh(
+        mesh_front,
+        cmap='seismic',
+        clim=clim,
+        scalars=scalar,
+        show_scalar_bar=False)
+    pl.add_mesh(
+        mesh_back,
+        cmap='seismic',
+        clim=clim,
+        scalars=scalar,
+        show_scalar_bar=False)
+    pl.add_scalar_bar(**sargs)
+    pl.view_yz()
+    pl.camera.Zoom(1.5)
+    pl.show()
+    pl.screenshot(f"Moon_{scalar}_3D.png")
