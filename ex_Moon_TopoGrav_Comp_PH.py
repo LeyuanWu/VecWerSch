@@ -101,43 +101,6 @@ mesh_shp_moon.points = Verts
 Faces = mesh_shp_moon.regular_faces
 pts_r = np.sqrt(np.sum(Verts**2, axis=1))
 
-mesh_shp_moon['Topography'] = (pts_r - r_ref) / 1.e3
-sargs = dict(
-    title='Topography (km)',
-    title_font_size=20,
-    label_font_size=16,
-    n_labels=9,
-    italic=True,
-    fmt='%.1f',
-    font_family='arial',
-    width=0.8,
-    height=0.1,
-    position_x=0.1,
-    position_y=0.1,
-    vertical=False)
-pl = pv.Plotter()
-mesh_front = mesh_shp_moon.translate([0, 2.e6, 0])
-mesh_back = mesh_shp_moon.rotate_z(180)
-mesh_back.translate([0, -2.e6, 0], inplace=True)
-pl.add_mesh(
-    mesh_front,
-    cmap='seismic',
-    clim=[-8, 8],
-    scalars='Topography',
-    show_scalar_bar=False)
-pl.add_mesh(
-    mesh_back,
-    cmap='seismic',
-    clim=[-8, 8],
-    scalars='Topography',
-    show_scalar_bar=False)
-pl.add_scalar_bar(**sargs)
-pl.view_yz()
-pl.camera.Zoom(1.5)
-pl.show()
-pl.screenshot("Moon_Topo_3D.png");
-
-
 # t0 = time.time()
 # V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
 #     WerSch_numba(P, Verts, Faces, rho)
