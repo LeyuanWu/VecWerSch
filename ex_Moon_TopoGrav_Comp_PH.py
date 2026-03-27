@@ -1,12 +1,10 @@
 # %% 
 # # ! Setup
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 import pyshtools as pysh
-import pygmt
 import pyvista as pv
 import time
+import xarray as xr
 from gravity_forward_numba import *
 # %% 
 # # ! Constants
@@ -41,62 +39,73 @@ pts_x = np.hstack([X[0,0], X[-1,0], X[1:-1,:-1].flatten(order='F')])
 pts_y = np.hstack([Y[0,0], Y[-1,0], Y[1:-1,:-1].flatten(order='F')])
 pts_z = np.hstack([Z[0,0], Z[-1,0], Z[1:-1,:-1].flatten(order='F')])
 Verts = np.column_stack((pts_x, pts_y, pts_z))
-mesh_shp_moon.points = Verts
 Faces = mesh_shp_moon.regular_faces
+del mesh_shp_moon
+
 #### * Calculation points
-lon_p = np.arange(0, 361, 5)
-lat_p = np.arange(90, -91, -5)
+res_deg = 0.25
+lon_p = np.arange(0, 361, res_deg)
+lat_p = np.arange(90, -91, -res_deg)
 [LON_P, LAT_P] = np.meshgrid(lon_p, lat_p)
-X_calc = r_calc * np.cos(np.deg2rad(LAT_P)) * np.cos(np.deg2rad(LON_P))
-Y_calc = r_calc * np.cos(np.deg2rad(LAT_P)) * np.sin(np.deg2rad(LON_P))
-Z_calc = r_calc * np.sin(np.deg2rad(LAT_P))
-calc_lon_rad = np.deg2rad(LON_P.flatten())
-calc_lat_rad = np.deg2rad(LAT_P.flatten())
-calc_x = X_calc.flatten()
-calc_y = Y_calc.flatten()
-calc_z = Z_calc.flatten()
-P = np.column_stack((calc_x, calc_y, calc_z))
+XP = r_calc * np.cos(np.deg2rad(LAT_P)) * np.cos(np.deg2rad(LON_P))
+YP = r_calc * np.cos(np.deg2rad(LAT_P)) * np.sin(np.deg2rad(LON_P))
+ZP = r_calc * np.sin(np.deg2rad(LAT_P))
+lon_calc_rad = np.deg2rad(LON_P.flatten())
+lat_calc_rad = np.deg2rad(LAT_P.flatten())
+xps = XP.flatten()
+yps = YP.flatten()
+zps = ZP.flatten()
+P = np.column_stack((xps, yps, zps))
+
+#### * Computation of topographic potential
 t0 = time.time()
-V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz = WerSch_numba(P, Verts, Faces, rho0)
+vgt_PH = WerSch_numba(P, Verts, Faces, rho0)
 t1 = time.time() - t0
 print(f"Time cost : {t1:8.3f} sec \n"
       f"Number of points: {P.shape[0]} \n"
       f"Number of faces: {Faces.shape[0]} \n")
-V0, gx0, gy0, gz0, Txx0, Txy0, Txz0, Tyy0, Tyz0, Tzz0 = \
-    gsphere(calc_x, calc_y, calc_z, 0, 0, 0, r_itfc, rho0)
-V = V - V0
-gx = gx - gx0
-gy = gy - gy0
-gz = gz - gz0
-Txx = Txx - Txx0
-Txy = Txy - Txy0
-Txz = Txz - Txz0
-Tyy = Tyy - Tyy0
-Tyz = Tyz - Tyz0
-Tzz = Tzz - Tzz0
+vgt_SP = gsphere(xps, yps, zps, 0, 0, 0, r_itfc, rho0)
+vgt_TP = tuple(g_PH - g_SP for g_PH, g_SP in zip(vgt_PH, vgt_SP))
+V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz = vgt_TP
 gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD = \
-    rotate_vec_ten_ecef2ned(calc_lon_rad, calc_lat_rad,
+    rotate_vec_ten_ecef2ned(lon_calc_rad, lat_calc_rad,
                             gx, gy, gz,
                             Txx, Txy, Txz,
                             Tyy, Tyz, Tzz)
-print(f'gD (mGal) --> min: {gD.min():.3e}; max: {gD.max():.3e}; mean: {gD.mean():.3e}; std: {gD.std():.3e}')
+print(f'Gravity |   min    |   max    |   mean   |   std   ')
+print(f'gN      | {gN.min():8.3f} | {gN.max():8.3f} | {gN.mean():8.3f} | {gN.std():8.3f}')
+print(f'gE      | {gE.min():8.3f} | {gE.max():8.3f} | {gE.mean():8.3f} | {gE.std():8.3f}')
+print(f'gD      | {gD.min():8.3f} | {gD.max():8.3f} | {gD.mean():8.3f} | {gD.std():8.3f}')
+# %%
+# # ! Saving results to NetCDF
+shape_2d = (len(lat_p), len(lon_p))
+data_vars = {
+    'V':   (('latitude', 'longitude'), V.reshape(shape_2d)),
+    'gN':  (('latitude', 'longitude'), gN.reshape(shape_2d)),
+    'gE':  (('latitude', 'longitude'), gE.reshape(shape_2d)),
+    'gD':  (('latitude', 'longitude'), gD.reshape(shape_2d)),
+    'TNN': (('latitude', 'longitude'), TNN.reshape(shape_2d)),
+    'TNE': (('latitude', 'longitude'), TNE.reshape(shape_2d)),
+    'TND': (('latitude', 'longitude'), TND.reshape(shape_2d)),
+    'TEE': (('latitude', 'longitude'), TEE.reshape(shape_2d)),
+    'TED': (('latitude', 'longitude'), TED.reshape(shape_2d)),
+    'TDD': (('latitude', 'longitude'), TDD.reshape(shape_2d)),
+}
+ds = xr.Dataset(
+    data_vars=data_vars,
+    coords={
+        'longitude': lon_p,
+        'latitude': lat_p,
+    },
+    attrs={
+        'description': 'Topographic gravity and gradient components of the Moon',
+        'r_calc_km': r_calc,
+        'rho_kg_m3': rho0,
+        'ref_radius_km': r_itfc,
+        'resolution_deg': res_deg,
+    }
+)
+ds.to_netcdf('moon_topo_gravity.nc')
+print("Saved to 'moon_topo_gravity.nc'")
 
-gD_topoG_moon = pysh.SHGrid.from_array(gD.reshape(LON_P.shape))
-# %% 
-# # ! Topographic potential
-fig = pygmt.Figure()
-gD_topoG_moon.plotgmt(fig=fig,
-                      projection='mollweide',
-                      central_longitude=-90.,
-                      grid=[30, 30],
-                      tick_interval=None,
-                      cmap='haxby',
-                      cmap_limits=[-800, 800],
-                      colorbar='bottom',
-                      cb_triangles='both',
-                      cb_label='Downward gravity component (mGal)',
-                      axes_labelsize=12,
-                      cb_tick_interval=200,
-                      cb_minor_tick_interval=100)
-fig.show(width=800)
             
