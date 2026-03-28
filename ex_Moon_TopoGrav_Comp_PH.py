@@ -43,9 +43,9 @@ Faces = mesh_shp_moon.regular_faces
 del mesh_shp_moon
 
 #### * Calculation points
-res_deg = 0.25
-lon_p = np.arange(0, 361, res_deg)
-lat_p = np.arange(90, -91, -res_deg)
+res_deg = 5.0
+lon_p = np.arange(0, 360+res_deg, res_deg)
+lat_p = np.arange(90, -90-res_deg, -res_deg)
 [LON_P, LAT_P] = np.meshgrid(lon_p, lat_p)
 XP = r_calc * np.cos(np.deg2rad(LAT_P)) * np.cos(np.deg2rad(LON_P))
 YP = r_calc * np.cos(np.deg2rad(LAT_P)) * np.sin(np.deg2rad(LON_P))
@@ -61,9 +61,13 @@ P = np.column_stack((xps, yps, zps))
 t0 = time.time()
 vgt_PH = WerSch_numba(P, Verts, Faces, rho0)
 t1 = time.time() - t0
-print(f"Time cost : {t1:8.3f} sec \n"
-      f"Number of points: {P.shape[0]} \n"
-      f"Number of faces: {Faces.shape[0]} \n")
+print("Computation info: \n"
+      f"Geographic grid: dlat = dlon = {res_deg} deg = {int(60*res_deg)} arc-min\n"
+      f"Number of computation points: {len(lat_p)} x {len(lon_p)} = {P.shape[0]} \n"
+      "Polyhedron geometry: \n"
+      f"Number of faces: {Faces.shape[0]} \n"
+      f"Number of vertices: {Verts.shape[0]} \n"
+      f"Time cost : {t1:8.3f} sec = {t1/60:.3f} min = {t1/(60*60):.3f} hr\n")
 vgt_SP = gsphere(xps, yps, zps, 0, 0, 0, r_itfc, rho0)
 vgt_TP = tuple(g_PH - g_SP for g_PH, g_SP in zip(vgt_PH, vgt_SP))
 V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz = vgt_TP
@@ -72,10 +76,20 @@ gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD = \
                             gx, gy, gz,
                             Txx, Txy, Txz,
                             Tyy, Tyz, Tzz)
+print(f'-----------------------------------------------------------')
 print(f'Gravity |   min    |   max    |   mean   |   std   ')
+print('GP in m^2/s^2, gravity in mGal, and gradients in Eotvos')
+print(f'-----------------------------------------------------------')
+print(f'V       | {V.min():8.3f} | {V.max():8.3f} | {V.mean():8.3f} | {V.std():8.3f}')
 print(f'gN      | {gN.min():8.3f} | {gN.max():8.3f} | {gN.mean():8.3f} | {gN.std():8.3f}')
 print(f'gE      | {gE.min():8.3f} | {gE.max():8.3f} | {gE.mean():8.3f} | {gE.std():8.3f}')
 print(f'gD      | {gD.min():8.3f} | {gD.max():8.3f} | {gD.mean():8.3f} | {gD.std():8.3f}')
+print(f'TNN     | {TNN.min():8.3f} | {TNN.max():8.3f} | {TNN.mean():8.3f} | {TNN.std():8.3f}')
+print(f'TNE     | {TNE.min():8.3f} | {TNE.max():8.3f} | {TNE.mean():8.3f} | {TNE.std():8.3f}')
+print(f'TND     | {TND.min():8.3f} | {TND.max():8.3f} | {TND.mean():8.3f} | {TND.std():8.3f}')
+print(f'TEE     | {TEE.min():8.3f} | {TEE.max():8.3f} | {TEE.mean():8.3f} | {TEE.std():8.3f}')
+print(f'TED     | {TED.min():8.3f} | {TED.max():8.3f} | {TED.mean():8.3f} | {TED.std():8.3f}')
+print(f'TDD     | {TDD.min():8.3f} | {TDD.max():8.3f} | {TDD.mean():8.3f} | {TDD.std():8.3f}')
 # %%
 # # ! Saving results to NetCDF
 shape_2d = (len(lat_p), len(lon_p))
@@ -105,7 +119,8 @@ ds = xr.Dataset(
         'resolution_deg': res_deg,
     }
 )
-ds.to_netcdf('moon_topo_gravity.nc')
-print("Saved to 'moon_topo_gravity.nc'")
+nc_file = f'moon_topo_gravity_res{int(res_deg*60)}arcmin.nc'
+ds.to_netcdf(nc_file)
+print(f"Saved to '{nc_file}'")
 
             

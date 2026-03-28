@@ -10,7 +10,9 @@ import time
 import xarray as xr
 # %% 
 # # ! Topographic potential
-ds = xr.open_dataset('moon_topo_gravity.nc')
+res_deg = 5.0
+nc_file = f'moon_topo_gravity_res{int(res_deg*60)}arcmin.nc'
+ds = xr.open_dataset(nc_file)
 print(ds)
 grd_gD = pysh.SHGrid.from_xarray(ds['gD'])
 fig = pygmt.Figure()
