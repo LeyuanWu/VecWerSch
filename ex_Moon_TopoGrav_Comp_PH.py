@@ -43,7 +43,7 @@ Faces = mesh_shp_moon.regular_faces
 del mesh_shp_moon
 
 #### * Calculation points
-res_deg = 5.0
+res_deg = 10.0
 lon_p = np.arange(0, 360+res_deg, res_deg)
 lat_p = np.arange(90, -90-res_deg, -res_deg)
 [LON_P, LAT_P] = np.meshgrid(lon_p, lat_p)
@@ -60,14 +60,16 @@ P = np.column_stack((xps, yps, zps))
 #### * Computation of topographic potential
 t0 = time.time()
 vgt_PH = WerSch_numba(P, Verts, Faces, rho0)
-t1 = time.time() - t0
+tc = time.time() - t0
 print("Computation info: \n"
       f"Geographic grid: dlat = dlon = {res_deg} deg = {int(60*res_deg)} arc-min\n"
       f"Number of computation points: {len(lat_p)} x {len(lon_p)} = {P.shape[0]} \n"
       "Polyhedron geometry: \n"
       f"Number of faces: {Faces.shape[0]} \n"
       f"Number of vertices: {Verts.shape[0]} \n"
-      f"Time cost : {t1:8.3f} sec = {t1/60:.3f} min = {t1/(60*60):.3f} hr\n")
+      f"Start time: {time.ctime(t0)} \n"
+      f"End time  : {time.ctime(time.time())} \n"
+      f"Time cost : {tc:8.3f} sec = {tc/60:.3f} min = {tc/(60*60):.3f} hr\n")
 vgt_SP = gsphere(xps, yps, zps, 0, 0, 0, r_itfc, rho0)
 vgt_TP = tuple(g_PH - g_SP for g_PH, g_SP in zip(vgt_PH, vgt_SP))
 V, gx, gy, gz, Txx, Txy, Txz, Tyy, Tyz, Tzz = vgt_TP
@@ -78,7 +80,7 @@ gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD = \
                             Tyy, Tyz, Tzz)
 print(f'-----------------------------------------------------------')
 print(f'Gravity |   min    |   max    |   mean   |   std   ')
-print('GP in m^2/s^2, gravity in mGal, and gradients in Eotvos')
+print('GP in m^2/s^2, GV in mGal, and GGT in Eotvos')
 print(f'-----------------------------------------------------------')
 print(f'V       | {V.min():8.3f} | {V.max():8.3f} | {V.mean():8.3f} | {V.std():8.3f}')
 print(f'gN      | {gN.min():8.3f} | {gN.max():8.3f} | {gN.mean():8.3f} | {gN.std():8.3f}')

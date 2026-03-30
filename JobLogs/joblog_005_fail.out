@@ -1,0 +1,23 @@
+  1 nohup: ignoring input
+  2 ================================================================================
+  3 Start time: [2026-03-08 20:48:24]
+  4 ================================================================================
+  5
+  6 Observation grid: 91 lat x 180 lon = 16380 points per altitude
+  7
+  8
+  9 === Altitude: 0.001 km ===
+ 10   Processing nsub = 12... [2026-03-08 20:48:24]
+ 11 Traceback (most recent call last):
+ 12   File "/data/home/liuruiPyth/LeyuanWuWork/VecWerSch/ex_IcoGeoSphere_Global.py", line 118, in <module>
+ 13     VecWerSch_numba_onthefly(P, verts_ico, faces_ico, rho)
+ 14   File "/data/home/liuruiPyth/LeyuanWuWork/VecWerSch/gravity_forward_numba.py", line 509, in VecWerSch_numba_onthefly
+ 15     Ie = _Faces2Edges(If)  # (Ne, 4): [v0, v1, f_ccw, f_cw]
+ 16          ^^^^^^^^^^^^^^^^
+ 17   File "/data/home/liuruiPyth/LeyuanWuWork/VecWerSch/gravity_forward_numba.py", line 120, in _Faces2Edges
+ 18     temp     = np.column_stack((e0, e1, face_ids, ccw));
+ 19                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 20   File "/data/home/liuruiPyth/anaconda3/envs/shtools/lib/python3.11/site-packages/numpy/lib/_shape_base_impl.py", line 669, in column_stack
+ 21     return _nx.concatenate(arrays, 1)
+ 22            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 23 numpy._core._exceptions._ArrayMemoryError: Unable to allocate 15.0 GiB for an array with shape (1006632960, 4) and data type int32
