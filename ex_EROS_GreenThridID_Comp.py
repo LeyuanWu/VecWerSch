@@ -4,14 +4,14 @@ import numpy as np
 import pyvista as pv
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-from gravity_forward_numba import VecWerSch_numba, green_third_identity_potential_numba
+from gravity_forward_numba import *
 import time
 
 # %% 
 # Parameters
 radii = [18, 20, 25, 30]          # Evaluation sphere radii (km)
 icosph_level = 5                  # 10 * 4^n + 2
-sub_lvls = list(range(7))         # Mesh refinement levels
+sub_lvls = list(range(6))         # Mesh refinement levels
 rho = 2670.0                      # Density (kg/m^3)
 
 # %%
@@ -58,7 +58,7 @@ t0_total = time.time()
 
 for i, (r, pts) in enumerate(zip(radii, eval_pts_Rs)):
     t0 = time.time()
-    V_exact, *_ = VecWerSch_numba(pts, Verts, Faces, rho)
+    V_exact, *_ = WerSch_numba(pts, Verts, Faces, rho)
     t_elapsed = time.time() - t0
     V_exact_Rs.append(V_exact)
     print(f" -> Radius {r} km: {len(pts)} points, time = {t_elapsed:.3f} s")
@@ -88,7 +88,7 @@ for level in sub_lvls:
 
     # Compute exact field on face centers (for Green's identity)
     t0 = time.time()
-    V_face, gx_face, gy_face, gz_face, *_ = VecWerSch_numba(face_centers, Verts, Faces, rho)
+    V_face, gx_face, gy_face, gz_face, *_ = WerSch_numba(face_centers, Verts, Faces, rho)
     g_face = np.column_stack((gx_face, gy_face, gz_face))
     t_face = time.time() - t0
     print(f" -> Time (Face center field): {t_face:.3f} s")
@@ -211,7 +211,7 @@ for plot_idx, level in enumerate(plot_levels):
     face_areas = eros_sub.compute_cell_sizes()["Area"]
     
     # Compute exact field on face centers
-    V_face, gx_face, gy_face, gz_face, *_ = VecWerSch_numba(face_centers, Verts, Faces, rho)
+    V_face, gx_face, gy_face, gz_face, *_ = WerSch_numba(face_centers, Verts, Faces, rho)
     g_face = np.column_stack((gx_face, gy_face, gz_face))
     
     # Evaluate Green's potential on r=18 km sphere

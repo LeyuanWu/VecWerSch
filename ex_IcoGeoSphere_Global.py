@@ -73,7 +73,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 8
+nsub_max = 7
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules
@@ -259,24 +259,7 @@ plt.tight_layout(pad=2.5)
 plt.savefig(f"IcoGeoSphere_Rs_nsub{nsub_max-1}.png", dpi=300, bbox_inches='tight')
 # plt.show()
 
-# %% Save results
-# import pickle
-# import os
-
-# save_dir = "Results"
-# if not os.path.exists(save_dir):
-#     os.makedirs(save_dir)
-# save_filename = os.path.join(save_dir, f"error_data_nsub{nsub_max-1}.pkl")
-# save_data = {
-#     'all_err_ico': all_err_ico,
-#     'all_err_geo': all_err_geo,
-#     'all_time_ico': all_time_ico,
-#     'all_time_geo': all_time_geo
-# }
-# with open(save_filename, 'wb') as f:
-#     pickle.dump(save_data, f, protocol=pickle.HIGHEST_PROTOCOL)
-# print(f"\nData saved to: {save_filename}")
-# # %% End time
-# print("="*80)
-# print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
-# print("="*80)
+# %% End time
+print("="*80)
+print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("="*80)

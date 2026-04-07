@@ -74,49 +74,6 @@ def gsphere(xp, yp, zp, xq, yq, zq, a, rho):
 
 
 @njit(parallel=True, fastmath=True, nogil=True)
-def _compute_nf_numba(Verts, Faces):
-    """
-    Compute unit face normals for a triangle mesh.
-    
-    Parameters
-    ----------
-    Verts : (Nv, 3) float64
-    Faces : (Nf, 3) int32
-    
-    Returns
-    -------
-    hnf    : (Nf, 3) float64 — unit normals
-    mag_nf : (Nf,) float64 — magnitude equal 2 * Area of triangle
-    """
-    Nf = Faces.shape[0]
-    hnf = np.empty((Nf, 3), dtype=np.float64)
-    mag_nf = np.empty((Nf,), dtype=np.float64)
-
-    for j in prange(Nf):
-        v0, v1, v2 = Faces[j, 0], Faces[j, 1], Faces[j, 2]
-
-        Ax, Ay, Az = Verts[v0, 0], Verts[v0, 1], Verts[v0, 2]
-        Bx, By, Bz = Verts[v1, 0], Verts[v1, 1], Verts[v1, 2]
-        Cx, Cy, Cz = Verts[v2, 0], Verts[v2, 1], Verts[v2, 2]
-
-        ABx, ABy, ABz = Bx - Ax, By - Ay, Bz - Az
-        BCx, BCy, BCz = Cx - Bx, Cy - By, Cz - Bz
-
-        nx = ABy * BCz - ABz * BCy
-        ny = ABz * BCx - ABx * BCz
-        nz = ABx * BCy - ABy * BCx
-
-        mag = (nx*nx + ny*ny + nz*nz)**0.5
-
-        hnf[j, 0] = nx / mag
-        hnf[j, 1] = ny / mag
-        hnf[j, 2] = nz / mag
-
-        mag_nf[j] = mag
-
-    return hnf, mag_nf
-
-@njit(parallel=True, fastmath=True, nogil=True)
 def WerSch_numba(P, Verts, Faces, rho):
     """
     Computes the gravitational potential (GP), gravitational vector (GV) and gravitational gradient tensor (GGT)
@@ -155,13 +112,10 @@ def WerSch_numba(P, Verts, Faces, rho):
     scale_g = G * rho * km2m * si2mg
     scale_T = G * rho * si2eot
 
-    # --- Precompute face normals ---
-    hnf, mag_nf = _compute_nf_numba(Verts, Faces)
-
     # --- Compute gravity ---
     P = np.asarray(P, dtype=np.float64)
     Verts = np.asarray(Verts, dtype=np.float64)
-    Faces = np.asarray(Faces, dtype=np.int32)   # Int32 to save memory for large meshes
+    Faces = np.asarray(Faces, dtype=np.int32)   # Use int32 for memory efficiency for large meshes
 
     Np = P.shape[0]
     Nf = Faces.shape[0]
@@ -184,6 +138,19 @@ def WerSch_numba(P, Verts, Faces, rho):
             Bx, By, Bz = Verts[v1, 0], Verts[v1, 1], Verts[v1, 2]
             Cx, Cy, Cz = Verts[v2, 0], Verts[v2, 1], Verts[v2, 2]
 
+            ABx, ABy, ABz = Bx - Ax, By - Ay, Bz - Az
+            BCx, BCy, BCz = Cx - Bx, Cy - By, Cz - Bz
+
+            nx = ABy * BCz - ABz * BCy
+            ny = ABz * BCx - ABx * BCz
+            nz = ABx * BCy - ABy * BCx
+
+            mag_nf = (nx*nx + ny*ny + nz*nz)**0.5
+
+            hnf_x = nx / mag_nf
+            hnf_y = ny / mag_nf
+            hnf_z = nz / mag_nf
+
             PAx, PAy, PAz = Ax - px, Ay - py, Az - pz
             PBx, PBy, PBz = Bx - px, By - py, Bz - pz
             PCx, PCy, PCz = Cx - px, Cy - py, Cz - pz
@@ -198,11 +165,9 @@ def WerSch_numba(P, Verts, Faces, rho):
 
             denom = rPA*rPB*rPC + rPA*rPB_dot_rPC + rPB*rPC_dot_rPA + rPC*rPA_dot_rPB
 
-            hnf_x, hnf_y, hnf_z = hnf[j, 0], hnf[j, 1], hnf[j, 2]
-
-            mixProd = mag_nf[j] * (PAx*hnf_x + PAy*hnf_y + PAz*hnf_z)
+            mixProd = mag_nf * (PAx*hnf_x + PAy*hnf_y + PAz*hnf_z)
             wf = 2.0 * np.arctan2(mixProd, denom)
-            rf_dot_hnf = mixProd / mag_nf[j]
+            rf_dot_hnf = mixProd / mag_nf
 
             Vf += rf_dot_hnf * rf_dot_hnf * wf
             gxf += hnf_x * rf_dot_hnf * wf
