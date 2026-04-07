@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pyvista as pv
 import time
 from datetime import datetime
-from gravity_forward_numba import *
+from gravity_forward_numba_v3 import *
 # %% Start time
 print("="*80)
 print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")

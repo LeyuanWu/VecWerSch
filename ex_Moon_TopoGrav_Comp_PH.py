@@ -5,7 +5,7 @@ import pyshtools as pysh
 import pyvista as pv
 import time
 import xarray as xr
-from gravity_forward_numba import *
+from gravity_forward_numba_v3 import *
 # %% 
 # # ! Constants
 myG = 6.67430e-11

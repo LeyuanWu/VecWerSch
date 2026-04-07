@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import CenteredNorm
 import time
 from scipy.io import loadmat
-from gravity_forward_numba import *
+from gravity_forward_numba_v3 import *
 # %%
 # Load EROS geometry from MATLAB file
 print("=== Loading EROS Geometry ===")

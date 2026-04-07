@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pyvista as pv
 import time
 from datetime import datetime
-from gravity_forward_numba import gsphere, WerSch_numba
+from gravity_forward_numba_v3 import gsphere, WerSch_numba
 # %%
 # Sphere parameters
 xc, yc, zc = 0., 0., 2.

@@ -4,7 +4,7 @@ import numpy as np
 import pyvista as pv
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-from gravity_forward_numba import *
+from gravity_forward_numba_v3 import *
 import time
 
 # %% 
