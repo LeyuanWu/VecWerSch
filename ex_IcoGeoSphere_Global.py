@@ -73,7 +73,7 @@ for r_obs in obs_radii:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Refinement settings
-nsub_max = 7
+nsub_max = 10
 NSUBs = np.arange(nsub_max)
 
 # Geographic resolution rules

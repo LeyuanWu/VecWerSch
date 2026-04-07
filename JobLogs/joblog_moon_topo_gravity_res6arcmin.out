@@ -1,0 +1,26 @@
+nohup: ignoring input
+Computation info: 
+Geographic grid: dlat = dlon = 0.1 deg = 6 arc-min
+Number of computation points: 1801 x 3601 = 6485401 
+Polyhedron geometry: 
+Number of faces: 2070720 
+Number of vertices: 1035362 
+Start time: Sat Mar 28 21:07:40 2026 
+End time  : Sun Mar 29 09:30:13 2026 
+Time cost : 44553.381 sec = 742.556 min = 12.376 hr
+
+-----------------------------------------------------------
+Gravity |   min    |   max    |   mean   |   std   
+GP in m^2/s^2, GV in mGal, and GGT in Eotvos
+-----------------------------------------------------------
+V       | -2459.730 | 4740.121 | -241.291 | 1492.069
+gN      | -487.734 |  926.304 |   10.394 |  154.338
+gE      | -550.694 |  605.276 |    0.008 |  150.297
+gD      | -722.208 | 1177.672 |  -35.968 |  246.344
+TNN     | -271.857 |  104.026 |    0.199 |   19.834
+TNE     | -130.304 |   94.953 |   -0.000 |   11.264
+TND     | -206.735 |  201.887 |    0.039 |   22.975
+TEE     | -185.920 |  106.492 |    0.316 |   19.779
+TED     | -174.036 |  197.871 |    0.001 |   22.959
+TDD     | -184.992 |  449.197 |   -0.515 |   32.802
+Saved to 'moon_topo_gravity_res6arcmin.nc'
