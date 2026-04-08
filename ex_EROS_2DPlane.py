@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import CenteredNorm
 import time
 from scipy.io import loadmat
-from gravity_forward_numba_v3 import *
+from gravity_forward_numba import *
 # %%
 # Load EROS geometry from MATLAB file
 print("=== Loading EROS Geometry ===")
@@ -73,7 +73,7 @@ P = np.column_stack((X2d.ravel(), Y2d.ravel(), Z2d.ravel()))
 t0 = time.time()
 V_cal, gx_cal, gy_cal, gz_cal, \
 Txx_cal, Txy_cal, Txz_cal, Tyy_cal, Tyz_cal, Tzz_cal = \
-    WerSch_numba(P, Verts, Faces, rho)
+    WerSch_numba_v2(P, Verts, Faces, rho, info=True)
 tc_numba = time.time() - t0
 
 # Reshape to 2D to match reference
@@ -119,7 +119,7 @@ df_diff = compute_stats(diff_arrays, fields)
 def print_table(df, title):
     print(f"\n{title}")
     print("=" * len(title))
-    print(df.to_string(float_format="{:12.8f}".format))
+    print(df.to_string(float_format="{:16.12f}".format))
 
 print_table(df_ref, "Reference (MATLAB) — GP in m²/s², GV in mGal, GGT in Eotvos")
 print_table(df_cal, "Computed (Numba Polyhedron) — GP in m²/s², GV in mGal, GGT in Eotvos")
@@ -141,7 +141,7 @@ for ax, field, name, unit in zip(axs.flat, GPV, Names, Units):
     cb = fig.colorbar(ctf, ax=ax, shrink=0.75, pad=0.08)
     cb.ax.set_ylabel(f'({unit})')
 
-plt.savefig('EROS_2DPlane_GPV.png', dpi=300, bbox_inches='tight')
+# plt.savefig('EROS_2DPlane_GPV.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # Plot 2: Gravity Gradient Tensor (GGT) — Upper triangular layout
@@ -169,5 +169,5 @@ for ax, field, name, unit in zip(pkaxs, GGT, Names, Units):
     cb = fig.colorbar(ctf, ax=ax, shrink=0.75, pad=0.08)
     cb.ax.set_ylabel(f'({unit})')
 
-plt.savefig('EROS_2DPlane_GGT.png', dpi=300, bbox_inches='tight')
+# plt.savefig('EROS_2DPlane_GGT.png', dpi=300, bbox_inches='tight')
 plt.show()

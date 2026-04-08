@@ -8,7 +8,7 @@
 import pyvista as pv
 # pv.set_jupyter_backend('static')
 import numpy as np
-from gravity_forward_numba_v3 import spherical_edge_length_range
+from gravity_forward_numba import spherical_edge_length_range
 # %%
 # # ! Recursive subdivision of an icosahedron
 
