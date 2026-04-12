@@ -340,7 +340,7 @@ def WerSch_numba_v2(P, Verts, Faces, rho, info=False):
     Pros: reduce memory usage by computing face normals & edge normals on-the-fly, suitable for very large meshes;
           can be used by partitioning "Faces" into smaller chunks and then adding together contributions from each part 
           to further reduce memory usage if needed (e.g., for Nf > 1e9);
-    Cons: sacrifice efficiency, require about 1.5 time cost of Version 1.
+    Cons: sacrifice efficiency, require about 1.5 time cost of Version 1 (for large mesh & high observation point counts).
 
     Reference:
     Werner, R.A., Scheeres, D.J. Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation

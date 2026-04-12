@@ -115,7 +115,7 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
 
         t0 = time.time()
         V_i, gx_i, gy_i, gz_i, Txx_i, Txy_i, Txz_i, Tyy_i, Tyz_i, Tzz_i = \
-            WerSch_numba(P, verts_ico, faces_ico, rho)
+            WerSch_numba_v1(P, verts_ico, faces_ico, rho)
         t_ico = time.time() - t0
         time_ico.append(t_ico)
         
@@ -152,7 +152,7 @@ for alt_idx, (P, ref_arrays) in enumerate(zip(P_list, ref_arrays_list)):
 
         t0 = time.time()
         V_g, gx_g, gy_g, gz_g, Txx_g, Txy_g, Txz_g, Tyy_g, Tyz_g, Tzz_g = \
-            WerSch_numba(P, verts_geo, faces_geo, rho)
+            WerSch_numba_v1(P, verts_geo, faces_geo, rho)
         t_geo = time.time() - t0
         time_geo.append(t_geo)
         
