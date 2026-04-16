@@ -5,86 +5,79 @@
 ##################################################################
 # %%
 # # ! Setup
-import pyvista as pv
-# pv.set_jupyter_backend('static')
 import numpy as np
+from datetime import datetime
+import pyvista as pv
+pv.set_jupyter_backend('static')
 from gravity_forward_numba import spherical_edge_length_range
+# %% 
+# # ! Start time
+print("="*80)
+print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("="*80)
 # %%
 # # ! Recursive subdivision of an icosahedron
-
 # True volume and surface area of unit sphere
-VOL_TRUE = 4 * np.pi / 3
-AREA_TRUE = 4 * np.pi
-
+vol_true  = 4 * np.pi / 3
+area_true = 4 * np.pi
 nsub_max = 10
 NSUBs = np.arange(nsub_max + 1)
-
 # ------------------------------------------------------------------
 # (1) Recursive subdivision of an icosahedron
 # ------------------------------------------------------------------
-print("\n" + "="*68)
+print("\n" + "="*90)
 print("Recursive subdivision of an icosahedron")
-print(f"{'N':>4} {'Nv':>8} {'Nf':>8} {'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}")
-print("-" * 68)
-
+print(f"{'nsub':<6} {'Nv':>12} {'Nf':>12} "
+      f"{'Vol_err':>10} {'Area_err':>10} "
+      f"{'Min_psi (arcmin)':>18} {'Max_psi (arcmin)':>18}")
+print("-" * 90)
 for nsub in NSUBs:
     mesh = pv.Icosphere(radius=1.0, nsub=nsub)
     verts = mesh.points
     faces = mesh.regular_faces
-
     nv = verts.shape[0]
     nf = faces.shape[0]
-    vol_err = 1.0 - mesh.volume / VOL_TRUE
-    area_err = 1.0 - mesh.area / AREA_TRUE
-
+    vol_err = np.abs((mesh.volume-vol_true) / vol_true)
+    area_err = np.abs((mesh.area-area_true) / area_true)
     min_psi, max_psi = spherical_edge_length_range(verts, faces)
     min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
-
-    print(f"{nsub:>4} {nv:>8} {nf:>8} "
+    print(f"{nsub:<6} {nv:>12} {nf:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
-          f"{min_psi_arcmin:>10.3f} {max_psi_arcmin:>10.3f}")
-
+          f"{min_psi_arcmin:>18.3f} {max_psi_arcmin:>18.3f}")
 # %%
 # # ! Triangulated regular geographic grid
-
 # ------------------------------------------------------------------
 # (2) Triangulated regular geographic grid
 # ------------------------------------------------------------------
-print("\n" + "="*68)
+print("\n" + "="*90)
 print("Triangulated Regular Geographic Grid")
-print(f"{'N':>4} {'Nv':>8} {'Nf':>8} {'Vol_err':>10} {'Area_err':>10} {'Min_psi':>10} {'Max_psi':>10}")
-print("-" * 68)
-
+print(f"{'level':<6} {'Nv':>12} {'Nf':>12} "
+      f"{'Vol_err':>10} {'Area_err':>10} "
+      f"{'Min_psi (arcmin)':>18} {'Max_psi (arcmin)':>18}")
+print("-" * 90)
 Lon_Res = 5 * (2 ** NSUBs)
 Lat_Res = (2 ** (NSUBs + 1)) + 2
-
 for i, nsub in enumerate(NSUBs):
     theta_res = Lon_Res[i]
     phi_res   = Lat_Res[i]
     mesh = pv.Sphere(radius=1.0, theta_resolution=theta_res, phi_resolution=phi_res)
     verts = mesh.points
     faces = mesh.regular_faces
-
     nv = verts.shape[0]
     nf = faces.shape[0]
-    vol_err = 1.0 - mesh.volume / VOL_TRUE
-    area_err = 1.0 - mesh.area / AREA_TRUE
-
+    vol_err = np.abs((mesh.volume-vol_true) / vol_true)
+    area_err = np.abs((mesh.area-area_true) / area_true)
     min_psi, max_psi = spherical_edge_length_range(verts, faces)
     min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
-
-    print(f"{nsub:>4} {nv:>8} {nf:>8} "
+    print(f"{nsub:<6} {nv:>12} {nf:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
-          f"{min_psi_arcmin:>10.3f} {max_psi_arcmin:>10.3f}")
-
+          f"{min_psi_arcmin:>18.3f} {max_psi_arcmin:>18.3f}")
 # %%
 # # ! Plot
-
 pl = pv.Plotter(shape=(2, 3), image_scale=3)
 pickNs = [2, 3, 4]
-
 # Top row: Icosphere
 for col, nsub in enumerate(pickNs):
     mesh = pv.Icosphere(radius=1.0, nsub=nsub)
@@ -96,7 +89,6 @@ for col, nsub in enumerate(pickNs):
                 scalar_bar_args=dict(title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-
 # Bottom row: Geographic grid
 for col, nsub in enumerate(pickNs):
     mesh = pv.Sphere(radius=1.0,
@@ -110,6 +102,10 @@ for col, nsub in enumerate(pickNs):
                 scalar_bar_args=dict(title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-
-pl.show()
-pl.screenshot("icosphere_geosphere.png");
+# pl.show()
+# pl.screenshot("icosphere_geosphere.png");
+# %% 
+# # ! End time
+print("="*80)
+print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("="*80)
