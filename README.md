@@ -29,7 +29,7 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/LeyuanWu/VecWerSch.git
 cd VecWerSch
-pip install numpy numba matplotlib pyvista
+conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
 ## 📖 Theory & Method

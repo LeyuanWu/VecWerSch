@@ -44,7 +44,7 @@ for nsub in NSUBs:
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
     print(f"{nsub:<6} {nv:>12} {nf:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
-          f"{min_psi_arcmin:>18.3f} {max_psi_arcmin:>18.3f}")
+          f"{min_psi_arcmin:>18.2e} {max_psi_arcmin:>18.2e}")
 # %%
 # # ! Triangulated regular geographic grid
 # ------------------------------------------------------------------
@@ -73,10 +73,10 @@ for i, nsub in enumerate(NSUBs):
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
     print(f"{nsub:<6} {nv:>12} {nf:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
-          f"{min_psi_arcmin:>18.3f} {max_psi_arcmin:>18.3f}")
+          f"{min_psi_arcmin:>18.2e} {max_psi_arcmin:>18.2e}")
 # %%
 # # ! Plot
-pl = pv.Plotter(shape=(2, 3), image_scale=3)
+pl = pv.Plotter(shape=(2, 3), border=False, image_scale=3)
 pickNs = [2, 3, 4]
 # Top row: Icosphere
 for col, nsub in enumerate(pickNs):
@@ -102,7 +102,7 @@ for col, nsub in enumerate(pickNs):
                 scalar_bar_args=dict(title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-# pl.show()
+pl.show()
 # pl.screenshot("icosphere_geosphere.png");
 # %% 
 # # ! End time
