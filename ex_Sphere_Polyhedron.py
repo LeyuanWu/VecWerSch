@@ -102,7 +102,7 @@ for col, nsub in enumerate(pickNs):
                 scalar_bar_args=dict(title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-pl.show()
+# pl.show()
 # pl.screenshot("icosphere_geosphere.png");
 # %% 
 # # ! End time

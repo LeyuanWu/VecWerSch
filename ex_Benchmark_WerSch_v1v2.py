@@ -30,9 +30,9 @@ def fibonacci_sphere_points(N, radius=2.0):
     return np.column_stack((x, y, z))
 # %%
 # # ! Number of faces and observation points for each level
-nsub_max = 7
+nsub_max = 8
 NSUBs = np.arange(nsub_max + 1)
-NFs = 20 * 4**NSUBs
+NTs = 20 * 4**NSUBs
 NPs = 20 * 4**NSUBs
 rho = 2670.0
 r_obs = 1.1
@@ -58,7 +58,7 @@ MAD_Tzz = np.empty((len(NSUBs), len(NSUBs)), dtype=np.float64)
 print("Benchmarking WerSch_numba_v1 vs WerSch_numba_v2")
 for i in range(len(NSUBs)):
     Verts, Faces = meshes[i]
-    Nf = NFs[i]
+    Nt = NTs[i]
     for j in range(len(NSUBs)):
         P = Ps[j]
         Np = NPs[j]
@@ -71,7 +71,7 @@ for i in range(len(NSUBs)):
             n_runs = 5
         else:
             n_runs = 1
-        print(f"NF={Nf:8d}, NP={Np:8d}, runs={n_runs:3d} ... ")
+        print(f"NT={Nt:8d}, NP={Np:8d}, runs={n_runs:3d} ... ")
         
         # Time v1 multiple runs
         times_v1 = []
@@ -104,12 +104,12 @@ for i in range(len(NSUBs)):
 # # ! Print results
 def print_table(title, data, fmt='8.1e'):
     print(f"\n{title}:")
-    print("   NF\\NP", end=" ")
+    print("   NT\\NP", end=" ")
     for j in NSUBs:
         print(f"{NPs[j]:8d}", end=" ")
     print()
     for i in NSUBs:
-        print(f"{NFs[i]:8d}", end=" ")
+        print(f"{NTs[i]:8d}", end=" ")
         for j in NSUBs:
             print(f"{data[i,j]:{fmt}}", end=" ")
         print()
@@ -132,7 +132,7 @@ im1 = axes[0,0].pcolormesh(X, Y, tc_v1,
                            cmap='turbo', 
                            norm=LogNorm())
 axes[0,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[0,0].set_ylabel(r'Mesh level $j$: $N_F = 20 \times 4^{j}$')
+axes[0,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
 axes[0,0].set_xticks(NSUBs)
 axes[0,0].set_yticks(NSUBs)
 plt.colorbar(im1, ax=axes[0,0])
@@ -143,7 +143,7 @@ im2 = axes[0,1].pcolormesh(X, Y, tc_v2,
                            cmap='turbo', 
                            norm=LogNorm())
 axes[0,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[0,1].set_ylabel(r'Mesh level $j$: $N_F = 20 \times 4^{j}$')
+axes[0,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
 axes[0,1].set_xticks(NSUBs)
 axes[0,1].set_yticks(NSUBs)
 plt.colorbar(im2, ax=axes[0,1])
@@ -157,7 +157,7 @@ im3 = axes[1,0].pcolormesh(X, Y, ratio,
                            cmap='RdBu_r', 
                            norm=norm_ratio)
 axes[1,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[1,0].set_ylabel(r'Mesh level $j$: $N_F = 20 \times 4^{j}$')
+axes[1,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
 axes[1,0].set_xticks(NSUBs)
 axes[1,0].set_yticks(NSUBs)
 plt.colorbar(im3, ax=axes[1,0])
@@ -168,7 +168,7 @@ im4 = axes[1,1].pcolormesh(X, Y, MAD_gz,
                            cmap='viridis', 
                            norm=LogNorm())
 axes[1,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[1,1].set_ylabel(r'Mesh level $j$: $N_F = 20 \times 4^{j}$')
+axes[1,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
 axes[1,1].set_xticks(NSUBs)
 axes[1,1].set_yticks(NSUBs)
 plt.colorbar(im4, ax=axes[1,1])
