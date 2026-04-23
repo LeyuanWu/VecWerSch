@@ -27,7 +27,7 @@ NSUBs = np.arange(nsub_max + 1)
 # ------------------------------------------------------------------
 print("\n" + "="*90)
 print("Recursive subdivision of an icosahedron")
-print(f"{'nsub':<6} {'Nv':>12} {'Nf':>12} "
+print(f"{'nsub':<6} {'NV':>12} {'NT':>12} "
       f"{'Vol_err':>10} {'Area_err':>10} "
       f"{'Min_psi (arcmin)':>18} {'Max_psi (arcmin)':>18}")
 print("-" * 90)
@@ -35,14 +35,14 @@ for nsub in NSUBs:
     mesh = pv.Icosphere(radius=1.0, nsub=nsub)
     verts = mesh.points
     faces = mesh.regular_faces
-    nv = verts.shape[0]
-    nf = faces.shape[0]
+    Nv = verts.shape[0]
+    Nt = faces.shape[0]
     vol_err = np.abs((mesh.volume-vol_true) / vol_true)
     area_err = np.abs((mesh.area-area_true) / area_true)
     min_psi, max_psi = spherical_edge_length_range(verts, faces)
     min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
-    print(f"{nsub:<6} {nv:>12} {nf:>12} "
+    print(f"{nsub:<6} {Nv:>12} {Nt:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
           f"{min_psi_arcmin:>18.2e} {max_psi_arcmin:>18.2e}")
 # %%
@@ -52,7 +52,7 @@ for nsub in NSUBs:
 # ------------------------------------------------------------------
 print("\n" + "="*90)
 print("Triangulated Regular Geographic Grid")
-print(f"{'level':<6} {'Nv':>12} {'Nf':>12} "
+print(f"{'level':<6} {'NV':>12} {'NT':>12} "
       f"{'Vol_err':>10} {'Area_err':>10} "
       f"{'Min_psi (arcmin)':>18} {'Max_psi (arcmin)':>18}")
 print("-" * 90)
@@ -64,14 +64,14 @@ for i, nsub in enumerate(NSUBs):
     mesh = pv.Sphere(radius=1.0, theta_resolution=theta_res, phi_resolution=phi_res)
     verts = mesh.points
     faces = mesh.regular_faces
-    nv = verts.shape[0]
-    nf = faces.shape[0]
+    Nv = verts.shape[0]
+    Nt = faces.shape[0]
     vol_err = np.abs((mesh.volume-vol_true) / vol_true)
     area_err = np.abs((mesh.area-area_true) / area_true)
     min_psi, max_psi = spherical_edge_length_range(verts, faces)
     min_psi_arcmin = 60.0 * np.rad2deg(min_psi)
     max_psi_arcmin = 60.0 * np.rad2deg(max_psi)
-    print(f"{nsub:<6} {nv:>12} {nf:>12} "
+    print(f"{nsub:<6} {Nv:>12} {Nt:>12} "
           f"{vol_err:>10.2e} {area_err:>10.2e} "
           f"{min_psi_arcmin:>18.2e} {max_psi_arcmin:>18.2e}")
 # %%
