@@ -34,7 +34,10 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 ## 📊 Benchmark
 
-![Benchmark comparison of two algorithms](Figs/Benchmark_WerSch_v1v2_nsub8.png)
+<!-- ![Benchmark comparison of two algorithms](Figs/Benchmark_WerSch_v1v2_nsub8.png) -->
+<div align="center">
+  <img src="Figs/Benchmark_WerSch_v1v2_nsub8.png" width="500"/>
+</div>
 
 ## 🔬 Numerical Examples
 
@@ -43,9 +46,10 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
   - Recursive icosahedron subdivision
   - Triangulated geographic grid
 
-![Icosphere vs Geosphere](Figs/icosphere_geosphere.png)
-
-<img src="Figs/Benchmark_WerSch_v1v2_nsub8.png" width="300"/>
+<!-- ![Icosphere vs Geosphere](Figs/icosphere_geosphere.png) -->
+<div align="center">
+  <img src="Figs/icosphere_geosphere.png" width="600"/>
+</div>
 
 [View Sphere Polyhedron Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Sphere_Polyhedron.ipynb)
 
@@ -59,14 +63,20 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 - [x] **2D Plane Gravity Computation**: Gravitational anomalies on planar surfaces
 - [x] **Green's Third Identity Validation**: Accuracy verification for polyhedral methods
 
-![Green's Third Identity Convergence (r=18km)](Figs/greenthirdid_convergence_r18km.png)
+<!-- ![Green's Third Identity Convergence (r=18km)](Figs/greenthirdid_convergence_r18km.png) -->
+<div align="center">
+  <img src="Figs/greenthirdid_convergence_r18km.png" width="600"/>
+</div>
 
 [View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_Comp.ipynb)
 
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
 
-![Moon Topography](Figs/Moon_Topography_3D.png)
+<!-- ![Moon Topography](Figs/Moon_Topography_3D.png) -->
+<div align="center">
+  <img src="Figs/Moon_Topography_3D.png" width="600"/>
+</div>
 
 [View Moon Topography Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
