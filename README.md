@@ -8,7 +8,7 @@ Efficient Python implementation for computing gravitational fields of polyhedral
 
 ## 🌟 Features
 
-- **Vectorized/Parallel Computation**: High-performance gravity field calculations using NumPy and Numba
+- **Parallel Computation**: High-performance gravity field calculations using Numba
 - **Polyhedral Models**: Support for complex 3D geometries approximated by polyhedrons
 - **Multiple Coordinate Systems**: Local Cartesian and Global Spherical coordinates
 - **Validation Tools**: Green's third identity verification for accuracy assessment
@@ -17,7 +17,7 @@ Efficient Python implementation for computing gravitational fields of polyhedral
 ## 📋 Table of Contents
 
 - [Installation](#installation)
-- [Theory & Method](#theory-method)
+- [Benchmark](#benchmark)
 - [Numerical Examples](#numerical-examples)
 - [Contributing](#contributing)
 - [License](#license)
@@ -32,12 +32,9 @@ cd VecWerSch
 conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
-## 📖 Theory & Method
+## 📊 Benchmark
 
-- [x] **Polyhedral Gravitation Theory**: Comprehensive explanation of gravitational potential computation for polyhedral bodies
-- [x] **Vectorized Algorithm Design**: Efficient implementation using vector operations
-
-[View Theory & Method Notebook](https://github.com/LeyuanWu/VecWerSch/blob/main/Theory_Method.ipynb)
+![Benchmark comparison of two algorithms](Figs/Benchmark_WerSch_v1v2_nsub8.png)
 
 ## 🔬 Numerical Examples
 
@@ -48,10 +45,12 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 ![Icosphere vs Geosphere](Figs/icosphere_geosphere.png)
 
+<img src="Figs/Benchmark_WerSch_v1v2_nsub8.png" width="300"/>
+
 [View Sphere Polyhedron Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Sphere_Polyhedron.ipynb)
 
 ### Gravity Forward Modelling
-- [x] **Local Cartesian Coordinates**: Icosphere/geosphere gravity modelling
+- [x] **Local Cartesian Coordinates**: Local geophysical gravity exploration 
 - [x] **Global Spherical Coordinates**: Large-scale planetary gravity fields
 
 [View Local Coordinates Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Local.ipynb) | [View Global Coordinates Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
@@ -62,10 +61,12 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 ![Green's Third Identity Convergence (r=18km)](Figs/greenthirdid_convergence_r18km.png)
 
-[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThridID_Comp.ipynb)
+[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_Comp.ipynb)
 
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
+
+![Moon Topography](Figs/Moon_Topography_3D.png)
 
 [View Moon Topography Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
