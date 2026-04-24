@@ -17,10 +17,8 @@ Efficient Python implementation for computing gravitational fields of polyhedral
 ## 📋 Table of Contents
 
 - [Installation](#installation)
-- [Benchmark](#benchmark)
-- [Numerical Examples](#numerical-examples)
-- [Contributing](#contributing)
-- [License](#license)
+- [Benchmark](#-benchmark)
+- [Numerical Examples](#-numerical-examples)
 
 ## 🚀 Installation
 
