@@ -43,7 +43,7 @@ alts = [0.001, 0.1, 1.0, 10.0]
 r_obs_list = [r_e + h for h in alts]
 
 # Use Fibonacci sampling instead of lat/lon grid
-nobs = 1000  # number of observation points per altitude
+nobs = 5000  # number of observation points per altitude
 print(f"\nUsing Fibonacci sphere sampling with {nobs} points per altitude\n")
 
 # Store observation points and reference solutions
@@ -225,7 +225,7 @@ rep_fields = ['V', 'gD', 'TNN', 'TDD']
 labels = {'V': r'$V$', 'gD': r'$g_D$', 'TNN': r'$T_{NN}$', 'TDD': r'$T_{DD}$'}
 colors = {'V': 'tab:red', 'gD': 'tab:blue', 'TNN': 'tab:orange', 'TDD': 'tab:green'}
 
-fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+fig, axs = plt.subplots(2, 2, figsize=(10, 9))
 axs = axs.flatten()
 
 NTs = 20 * (4 ** NSUBs)
@@ -240,11 +240,15 @@ for i, h in enumerate(alts):
         ax.loglog(NTs, err_geo_all[i][field], '--', marker='s', fillstyle='none',
                   color=c, linewidth=2, markersize=6, label=f'Geosphere - {lbl}')
     
-    ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
+    # ax.set_title(f'{h:g} km above surface', fontsize=13, pad=10)
     ax.set_xlabel('Number of triangular faces ($N_T$)')
     ax.set_ylabel('Relative $L_2$ error')
-    ax.grid(True, which="both", linestyle=':', linewidth=0.7, alpha=0.8)
+    ax.grid(True, which="major", linestyle=':', linewidth=1.0, alpha=1.0)
     ax.legend(fontsize=9, loc='lower left', frameon=True, ncol=2)
+
+[ax.text(-0.15, 1.08, label, transform=ax.transAxes, 
+         fontsize=14, fontweight='bold', va='top') 
+         for ax, label in zip(axs, ['(a)', '(b)', '(c)', '(d)'])]
 
 plt.tight_layout(pad=2.5)
 plt.savefig(f"IcoGeoSphere_Global_nsub{nsub_max}_nobs{nobs}.png", 

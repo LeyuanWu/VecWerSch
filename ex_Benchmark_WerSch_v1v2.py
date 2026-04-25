@@ -123,59 +123,59 @@ print_table(f"Max Abs Diff Tzz (Eotvos), with Ref. std {np.std(Tzz1):.2f} Eotvos
             MAD_Tzz, fmt='8.2e')
 # %%
 # # ! Plotting
-fig, axes = plt.subplots(2, 2, figsize=(9, 8))
+fig, axs = plt.subplots(2, 2, figsize=(9, 8))
 
 # Time v1
 X, Y = np.meshgrid(NSUBs, NSUBs)
-im1 = axes[0,0].pcolormesh(X, Y, tc_v1, 
-                           shading='nearest',
-                           cmap='turbo', 
-                           norm=LogNorm())
-axes[0,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[0,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axes[0,0].set_xticks(NSUBs)
-axes[0,0].set_yticks(NSUBs)
-plt.colorbar(im1, ax=axes[0,0])
+im1 = axs[0,0].pcolormesh(X, Y, tc_v1, 
+                          shading='nearest',
+                          cmap='turbo', 
+                          norm=LogNorm())
+axs[0,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
+axs[0,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
+axs[0,0].set_xticks(NSUBs)
+axs[0,0].set_yticks(NSUBs)
+plt.colorbar(im1, ax=axs[0,0])
 
 # Time v2
-im2 = axes[0,1].pcolormesh(X, Y, tc_v2, 
-                           shading='nearest',
-                           cmap='turbo', 
-                           norm=LogNorm())
-axes[0,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[0,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axes[0,1].set_xticks(NSUBs)
-axes[0,1].set_yticks(NSUBs)
-plt.colorbar(im2, ax=axes[0,1])
+im2 = axs[0,1].pcolormesh(X, Y, tc_v2, 
+                          shading='nearest',
+                          cmap='turbo', 
+                          norm=LogNorm())
+axs[0,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
+axs[0,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
+axs[0,1].set_xticks(NSUBs)
+axs[0,1].set_yticks(NSUBs)
+plt.colorbar(im2, ax=axs[0,1])
 
 # Ratio t2/t1
 ratio = tc_v2 / tc_v1
 vmin, vmax = np.min(ratio), np.max(ratio)
 norm_ratio = TwoSlopeNorm(vmin=vmin, vcenter=1, vmax=vmax)
-im3 = axes[1,0].pcolormesh(X, Y, ratio, 
-                           shading='nearest',
-                           cmap='RdBu_r', 
-                           norm=norm_ratio)
-axes[1,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[1,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axes[1,0].set_xticks(NSUBs)
-axes[1,0].set_yticks(NSUBs)
-plt.colorbar(im3, ax=axes[1,0])
+im3 = axs[1,0].pcolormesh(X, Y, ratio, 
+                          shading='nearest',
+                          cmap='RdBu_r', 
+                          norm=norm_ratio)
+axs[1,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
+axs[1,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
+axs[1,0].set_xticks(NSUBs)
+axs[1,0].set_yticks(NSUBs)
+plt.colorbar(im3, ax=axs[1,0])
 
 # Max abs diff gz
-im4 = axes[1,1].pcolormesh(X, Y, MAD_gz, 
-                           shading='nearest',
-                           cmap='viridis', 
-                           norm=LogNorm())
-axes[1,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axes[1,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axes[1,1].set_xticks(NSUBs)
-axes[1,1].set_yticks(NSUBs)
-plt.colorbar(im4, ax=axes[1,1])
+im4 = axs[1,1].pcolormesh(X, Y, MAD_gz, 
+                          shading='nearest',
+                          cmap='viridis', 
+                          norm=LogNorm())
+axs[1,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
+axs[1,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
+axs[1,1].set_xticks(NSUBs)
+axs[1,1].set_yticks(NSUBs)
+plt.colorbar(im4, ax=axs[1,1])
 
 [ax.text(-0.15, 1.05, label, transform=ax.transAxes, 
          fontsize=14, fontweight='bold', va='top') 
-         for ax, label in zip(axes.flat, ['(a)', '(b)', '(c)', '(d)'])]
+         for ax, label in zip(axs.flat, ['(a)', '(b)', '(c)', '(d)'])]
 
 plt.tight_layout(pad=2.5)
 plt.savefig(f"Benchmark_WerSch_v1v2_nsub{nsub_max}.png", dpi=300, bbox_inches='tight')
