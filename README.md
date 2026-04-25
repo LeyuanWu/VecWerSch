@@ -46,7 +46,7 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 <!-- ![Icosphere vs Geosphere](Figs/icosphere_geosphere.png) -->
 <div align="center">
-  <img src="Figs/icosphere_geosphere.png" width="600"/>
+  <img src="Figs/Sphere_Polyhedron.png" width="600"/>
 </div>
 
 [View Sphere Polyhedron Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Sphere_Polyhedron.ipynb)
