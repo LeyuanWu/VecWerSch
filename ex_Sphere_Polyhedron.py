@@ -83,10 +83,12 @@ for col, nsub in enumerate(pickNs):
     mesh = pv.Icosphere(radius=1.0, nsub=nsub)
     mesh = mesh.compute_cell_sizes()
     areas = mesh['Area']
-    mesh[f'Area (%) nsub={nsub}'] = 100 * areas / areas.sum()
+    scalar_name = f'ico_area_n{nsub}'
+    mesh[scalar_name] = 100 * areas / areas.sum()
     pl.subplot(0, col)
-    pl.add_mesh(mesh, scalars=f'Area (%) nsub={nsub}', cmap='viridis',
-                scalar_bar_args=dict(title_font_size=14, label_font_size=12,
+    pl.add_mesh(mesh, scalars=scalar_name, cmap='viridis',
+                scalar_bar_args=dict(title=f'Area (%) $n_{{ico}}={nsub}$', 
+                                     title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
 # Bottom row: Geographic grid
@@ -96,14 +98,16 @@ for col, nsub in enumerate(pickNs):
                      phi_resolution=Lat_Res[nsub])
     mesh = mesh.compute_cell_sizes()
     areas = mesh['Area']
-    mesh[f'Area (%) level={nsub}'] = 100 * areas / areas.sum()
+    scalar_name = f'geo_area_n{nsub}'
+    mesh[scalar_name] = 100 * areas / areas.sum()
     pl.subplot(1, col)
-    pl.add_mesh(mesh, scalars=f'Area (%) level={nsub}', cmap='viridis',
-                scalar_bar_args=dict(title_font_size=14, label_font_size=12,
+    pl.add_mesh(mesh, scalars=scalar_name, cmap='viridis',
+                scalar_bar_args=dict(title=f'Area (%) $n_{{geo}}={nsub}$', 
+                                     title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-# pl.show()
-# pl.screenshot("icosphere_geosphere.png");
+pl.show()
+# pl.screenshot("Sphere_Polyhedron.png");
 # %% 
 # # ! End time
 print("="*80)

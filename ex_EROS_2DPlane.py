@@ -1,14 +1,15 @@
 # %%
-# Setup
+# # ! Setup
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import CenteredNorm
+from matplotlib.ticker import MaxNLocator
 import time
 from scipy.io import loadmat
 from gravity_forward_numba import *
 # %%
-# Load EROS geometry from MATLAB file
+# # ! Load EROS geometry from MATLAB file
 print("=== Loading EROS Geometry ===")
 eros_mat = loadmat('EROS.mat')
 eros_vf = eros_mat['eros11272_22540']  # shape: (nVert + nFace, 3)
@@ -33,7 +34,7 @@ print(f"  Y ∈ [{Y1:8.4f}, {Y2:8.4f}]")
 print(f"  Z ∈ [{Z1:8.4f}, {Z2:8.4f}]")
 
 # %%
-# Load reference gravity field computed in MATLAB
+# # ! Load reference gravity field computed in MATLAB
 print("\n=== Loading Reference Gravity Field (MATLAB) ===")
 eros_grav = loadmat('EROS_Grefs.mat')
 
@@ -57,7 +58,7 @@ print(f"Observation grid size: {nx_ref} x {ny_ref} = {N_obs} points")
 print(f"MATLAB computation time: {tc_matlab:.2f} sec")
 
 # %%
-# Observation grid setup and Numba forward computation
+# # ! Observation grid setup and Numba forward computation
 print("\n=== Numba Forward Computation ===")
 rho = 2670.0  # density in kg/m³
 
@@ -92,7 +93,7 @@ print(f"Numba computation time: {tc_numba:.2f} sec")
 print(f"Speedup vs MATLAB: {tc_matlab / tc_numba:.2f}x")
 
 # %%
-# Compute statistics: Reference, Computed, and Difference (cal - ref)
+# # ! Statistics: Reference, Computed, and Difference (cal - ref)
 fields = ['V', 'gx', 'gy', 'gz', 'Txx', 'Txy', 'Txz', 'Tyy', 'Tyz', 'Tzz']
 ref_arrays = [V_ref, gx_ref, gy_ref, gz_ref, Txx_ref, Txy_ref, Txz_ref, Tyy_ref, Tyz_ref, Tzz_ref]
 cal_arrays = [V_cal, gx_cal, gy_cal, gz_cal, Txx_cal, Txy_cal, Txz_cal, Tyy_cal, Tyz_cal, Tzz_cal]
@@ -126,30 +127,34 @@ print_table(df_cal, "Computed (Numba Polyhedron) — GP in m²/s², GV in mGal, 
 print_table(df_diff, "Difference (Computed - Reference) — GP in m²/s², GV in mGal, GGT in Eotvos")
 
 # %%
-# Plot 1: Gravity Potential and Vector Components (2×2)
+# # ! Plot 1: Gravity Potential and Vector Components (2×2)
 GPV = [V_cal, gx_cal, gy_cal, gz_cal]
 Names = ['$V$', '$g_x$', '$g_y$', '$g_z$']
 Units = ['$m^2/s^2$', 'mGal', 'mGal', 'mGal']
 
-fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 5), layout='constrained')
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(8.5, 6), layout='constrained')
 for ax, field, name, unit in zip(axs.flat, GPV, Names, Units):
-    ctf = ax.contourf(X2d, Y2d, field, levels=50, cmap='RdBu_r')
-    ax.set_xlabel('X (km)')
-    ax.set_ylabel('Y (km)')
+    ctf = ax.contourf(X2d, Y2d, field, levels=50, 
+                      cmap='RdBu_r' if name != '$V$' else 'viridis')
+    ax.set_xlabel('X (km)', fontsize=10)
+    ax.set_ylabel('Y (km)', fontsize=10)
     ax.set_aspect('equal')
-    ax.set_title(name, fontsize=12)
-    cb = fig.colorbar(ctf, ax=ax, shrink=0.75, pad=0.08)
-    cb.ax.set_ylabel(f'({unit})')
-
-# plt.savefig('EROS_2DPlane_GPV.png', dpi=300, bbox_inches='tight')
+    ax.set_title(name, fontsize=13, pad=8)
+    cb = fig.colorbar(ctf, ax=ax, orientation='horizontal',
+                   shrink=0.8, aspect=30, pad=0.12, extend='both')
+    cb.ax.set_xlabel(f'({unit})', fontsize=9)
+    cb.ax.tick_params(labelsize=9)
+    cb.ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+plt.savefig('EROS_2DPlane_GPV.png', dpi=300, bbox_inches='tight')
 plt.show()
 
-# Plot 2: Gravity Gradient Tensor (GGT) — Upper triangular layout
+# %%
+# # ! Plot 2: Gravity Gradient Tensor (GGT) — Upper triangular layout
 GGT = [Txx_cal, Txy_cal, Txz_cal, Tyy_cal, Tyz_cal, Tzz_cal]
 Names = ['$T_{xx}$', '$T_{xy}$', '$T_{xz}$', '$T_{yy}$', '$T_{yz}$', '$T_{zz}$']
 Units = ['Eotvos'] * 6
 
-fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 6), layout='constrained')
+fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(9.5, 7), layout='constrained')
 
 pkaxs = [
     axs[0, 0], axs[0, 1], axs[0, 2],
@@ -161,13 +166,19 @@ for ax in [axs[1, 0], axs[2, 0], axs[2, 1]]:
     ax.set_axis_off()
 
 for ax, field, name, unit in zip(pkaxs, GGT, Names, Units):
-    ctf = ax.contourf(X2d, Y2d, field, levels=50, cmap='RdBu_r', norm=CenteredNorm())
-    ax.set_xlabel('X (km)')
-    ax.set_ylabel('Y (km)')
+    norm = CenteredNorm(vcenter=0.0, halfrange=np.abs(field).max())
+    ctf = ax.contourf(X2d, Y2d, field, levels=50, cmap='RdBu_r', norm=norm)
+    
+    ax.set_xlabel('X (km)', fontsize=10)
+    ax.set_ylabel('Y (km)', fontsize=10)
     ax.set_aspect('equal')
-    ax.set_title(name, fontsize=12)
-    cb = fig.colorbar(ctf, ax=ax, shrink=0.75, pad=0.08)
-    cb.ax.set_ylabel(f'({unit})')
+    ax.set_title(name, fontsize=13, pad=8)
 
-# plt.savefig('EROS_2DPlane_GGT.png', dpi=300, bbox_inches='tight')
+    cb = fig.colorbar(ctf, ax=ax, orientation='horizontal',
+                      shrink=0.75, aspect=30, pad=0.12, extend='both')
+    cb.ax.set_xlabel(f'({unit})', fontsize=9)
+    cb.ax.tick_params(labelsize=9)
+    cb.ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+
+plt.savefig('EROS_2DPlane_GGT.png', dpi=300, bbox_inches='tight')
 plt.show()

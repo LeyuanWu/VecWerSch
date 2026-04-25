@@ -43,7 +43,7 @@ alts = [0.001, 0.1, 1.0, 10.0]
 r_obs_list = [r_e + h for h in alts]
 
 # Use Fibonacci sampling instead of lat/lon grid
-nobs = 100  # number of observation points per altitude
+nobs = 1000  # number of observation points per altitude
 print(f"\nUsing Fibonacci sphere sampling with {nobs} points per altitude\n")
 
 # Store observation points and reference solutions
@@ -78,7 +78,7 @@ for r in r_obs_list:
 fields = ['V', 'gN', 'gE', 'gD', 'TNN', 'TNE', 'TND', 'TEE', 'TED', 'TDD']
 
 # Mesh refinement
-nsub_max = 10
+nsub_max = 12
 NSUBs = np.arange(nsub_max + 1)
 Lon_Res = 5 * (2 ** NSUBs)
 Lat_Res = (2 ** (NSUBs + 1)) + 2
