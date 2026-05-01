@@ -11,7 +11,7 @@ from gravity_forward_numba import *
 # %%
 # # ! Load EROS geometry from MATLAB file
 print("=== Loading EROS Geometry ===")
-eros_mat = loadmat('EROS.mat')
+eros_mat = loadmat('input/EROS.mat')
 eros_vf = eros_mat['eros11272_22540']  # shape: (nVert + nFace, 3)
 
 nF = 22540
@@ -36,7 +36,7 @@ print(f"  Z ∈ [{Z1:8.4f}, {Z2:8.4f}]")
 # %%
 # # ! Load reference gravity field computed in MATLAB
 print("\n=== Loading Reference Gravity Field (MATLAB) ===")
-eros_grav = loadmat('EROS_Grefs.mat')
+eros_grav = loadmat('input/EROS_Grefs.mat')
 
 # Extract 2D fields (keep original shape for plotting)
 V_ref   = eros_grav['dV']      # (ny, nx)

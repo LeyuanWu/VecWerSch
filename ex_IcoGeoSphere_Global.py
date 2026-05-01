@@ -190,7 +190,7 @@ print(df_refs.to_string(float_format="{:8.2f}".format))
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # Load data
-# data = np.load(f'IcoGeoSphere_Global_nsub{nsub_max}_nobs{nobs}.npz', 
+# data = np.load(f'output/IcoGeoSphere_Global_nsub{nsub_max}_nobs{nobs}.npz', 
 #                allow_pickle=True)
 # nsub_max = int(data['nsub_max'])
 # nobs = int(data['nobs'])
@@ -206,7 +206,7 @@ print(df_refs.to_string(float_format="{:8.2f}".format))
 
 # Save data
 np.savez_compressed(
-    f'IcoGeoSphere_Global_nsub{nsub_max}_nobs{nobs}.npz',
+    f'output/IcoGeoSphere_Global_nsub{nsub_max}_nobs{nobs}.npz',
     nsub_max=nsub_max,
     nobs=nobs,
     alts=alts,

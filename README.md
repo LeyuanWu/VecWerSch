@@ -70,6 +70,7 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 </div> -->
 
 [View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
+
 [View EROS: refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
 
 ### Lunar Topography

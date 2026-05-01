@@ -1,6 +1,8 @@
 jggrx_1500e_sha.tab
 Moon_shape_5759.sh
 Moon_shape_2879.sh
+moon_topo_gravity_res6arcmin.nc
+moon_topo_gravity_res15arcmin.nc
+moon_topo_gravity_res60arcmin.nc
 archive/
 backup/
-Results/
