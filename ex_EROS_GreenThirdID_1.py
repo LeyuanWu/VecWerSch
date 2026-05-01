@@ -1,5 +1,5 @@
 ##################################################################
-# # ! Validation of Green's 3rd Identity for EROS Geometry
+# # ! Validation of Green's 3rd Identity using EROS shape model
 ##################################################################
 # %%
 # # ! Setup
@@ -12,7 +12,7 @@ from gravity_forward_numba import WerSch_numba_v1
 # %%
 # # ! Load EROS geometry from MATLAB file
 print("=== Loading EROS Geometry ===")
-eros_mat = loadmat('EROS.mat')
+eros_mat = loadmat('input/EROS.mat')
 eros_vf = eros_mat['eros856_1708']  # shape: (nVert + nFace, 3)
 
 nF = 1708
