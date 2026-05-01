@@ -62,7 +62,7 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 <div align="center">
   <img src="Figs/EROS_GreenThirdID_1.png" width="600"/>
-  <p><em>EROS geometry refinement with surface gravitational potential and normal component of the gravity vector</em></p>
+  <p><em>EROS geometry refinement with surface gravity</em></p>
 </div>
 
 <!-- <div align="center">
