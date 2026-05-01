@@ -45,7 +45,6 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
   - Recursive icosahedron subdivision
   - Triangulated geographic grid
 
-<!-- ![Icosphere vs Geosphere](Figs/icosphere_geosphere.png) -->
 <div align="center">
   <img src="Figs/Sphere_Polyhedron.png" width="600"/>
   <p><em>Icosphere vs. geosphere polyhedral approximations of an ideal sphere</em></p>
@@ -61,12 +60,15 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 - [x] **2D Plane Gravity Computation**: Gravitational anomalies on planar surfaces
 - [x] **Green's Third Identity Validation**: Accuracy verification for polyhedral methods
 
-<!-- ![Green's Third Identity Convergence (r=18km)](Figs/greenthirdid_convergence_r18km.png) -->
 <div align="center">
-  <img src="Figs/greenthirdid_convergence_r18km.png" width="600"/>
+  <img src="Figs/EROS_GreenThirdID_1.png" width="600"/>
 </div>
 
-[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_Comp.ipynb)
+<!-- <div align="center">
+  <img src="Figs/greenthirdid_convergence_r18km.png" width="600"/>
+</div> -->
+
+[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example: geometry and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
 
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
