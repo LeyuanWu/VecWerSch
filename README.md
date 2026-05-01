@@ -62,13 +62,15 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 <div align="center">
   <img src="Figs/EROS_GreenThirdID_1.png" width="600"/>
+  <p><em>EROS geometry refinement with surface gravitational potential and normal component of the gravity vector</em></p>
 </div>
 
 <!-- <div align="center">
   <img src="Figs/greenthirdid_convergence_r18km.png" width="600"/>
 </div> -->
 
-[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb) | [View Green's Identity Example: geometry and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
+[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
+[View EROS: refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
 
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
