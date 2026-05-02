@@ -57,7 +57,7 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 [View Sphere gravity computation Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
 
 ### Asteroid EROS
-- [x] **2D Plane Gravity Computation**: Gravitational anomalies on planar surfaces
+- [x] **2D Plane Gravity Computation**: Gravitational anomalies on a 2D plane
 - [x] **Green's Third Identity Validation**: Accuracy verification for polyhedral methods
 
 <div align="center">
@@ -70,9 +70,11 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
   <p><em>Numerical validation of Green's third ID across refinement levels</em></p>
 </div>
 
-[View EROS 2D Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
+[View EROS 2D plane computation](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
 
-[View EROS: refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
+[View EROS: mesh refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
+
+[View EROS: Green's Third ID convergence](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_2.ipynb)
 
 ### Lunar Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
