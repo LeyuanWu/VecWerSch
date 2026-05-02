@@ -3,17 +3,27 @@
 ##################################################################
 # %%
 # # ! Setup
+import os
+os.environ["PYVISTA_OFF_SCREEN"] = "true"
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import time
+from datetime import datetime
 import pyvista as pv
 pv.set_jupyter_backend('static')
 from scipy.io import loadmat
 from gravity_forward_numba import *
 # %% 
+# # ! Start time
+print("=" * 80)
+print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("=" * 80)
+# %% 
 # # ! Parameters
 radii = [17.8, 18.0, 20.0]        # Evaluation sphere radii (km)
-icosph_lvl = 4                    # 10 * 4^n + 2
+icosph_lvl = 6                    # 10 * 4^n + 2
 sub_max = 6                       # Max subdivision level for EROS mesh
 NSUBs = np.arange(sub_max+1)      # Mesh refinement levels
 rho = 2670.0                      # Density (kg/m^3)
@@ -159,9 +169,8 @@ plt.ylabel('Relative Error')
 plt.grid(True, which="both", ls="--", alpha=0.7)
 plt.legend(loc='lower left')
 plt.tight_layout()
-plt.savefig('EROS_GreenThirdID_2_1.png', 
-            dpi=300, bbox_inches='tight')
-plt.show()
+plt.savefig('EROS_GreenThirdID_2_1.png', dpi=300, bbox_inches='tight')
+# plt.show()
 # %%
 # # ! Visualize pointwise relative error across refinement levels
 plot_nsubs = [0, 2, 4, 6]  # Choose 4 levels for 2x2 grid
@@ -238,4 +247,10 @@ pl.camera.up = (0, 0, 1)
 
 pl.window_size = (800, 800)
 
-pl.show()
+pl.screenshot('EROS_GreenThirdID_2_2.png');
+# pl.show()
+# %% 
+# # ! End time
+print("=" * 80)
+print(f"End time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+print("=" * 80)
