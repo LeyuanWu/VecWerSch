@@ -68,14 +68,14 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 [View EROS: 2D plane computation](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
 
 <div align="center">
-  <img src="Figs/EROS_GreenThirdID_1.png" width="600"/>
+  <img src="Figs/EROS_Geometry.png" width="600"/>
   <p><em>EROS geometry refinement with surface gravity</em></p>
 </div>
 
 [View EROS: mesh refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
 
 <div align="center">
-  <img src="Figs/EROS_GreenThirdID_2_2.png" width="600"/>
+  <img src="Figs/EROS_ErrorMaps.png" width="600"/>
   <p><em>Numerical validation of Green's third ID across refinement levels</em></p>
 </div>
 
