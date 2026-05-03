@@ -23,7 +23,7 @@ print("=" * 80)
 # %% 
 # # ! Parameters
 radii = [17.8, 18.0, 20.0]        # Evaluation sphere radii (km)
-icosph_lvl = 6                    # 10 * 4^n + 2
+icosph_lvl = 5                    # 10 * 4^n + 2
 sub_max = 6                       # Max subdivision level for EROS mesh
 NSUBs = np.arange(sub_max+1)      # Mesh refinement levels
 rho = 2670.0                      # Density (kg/m^3)
@@ -169,7 +169,7 @@ plt.ylabel('Relative Error')
 plt.grid(True, which="both", ls="--", alpha=0.7)
 plt.legend(loc='lower left')
 plt.tight_layout()
-plt.savefig('EROS_GreenThirdID_2_1.png', dpi=300, bbox_inches='tight')
+plt.savefig('EROS_Convergence.png', dpi=300, bbox_inches='tight')
 # plt.show()
 # %%
 # # ! Visualize pointwise relative error across refinement levels
@@ -247,7 +247,7 @@ pl.camera.up = (0, 0, 1)
 
 pl.window_size = (800, 800)
 
-pl.screenshot('EROS_GreenThirdID_2_2.png');
+pl.screenshot('EROS_ErrorMaps.png');
 # pl.show()
 # %% 
 # # ! End time

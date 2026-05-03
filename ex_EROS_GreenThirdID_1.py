@@ -3,11 +3,13 @@
 ##################################################################
 # %%
 # # ! Setup
-import pyvista as pv
-pv.set_jupyter_backend('static')
+import os
+os.environ["PYVISTA_OFF_SCREEN"] = "true"
 import numpy as np
 from scipy.io import loadmat
 from scipy.spatial import cKDTree
+import pyvista as pv
+pv.set_jupyter_backend('static')
 from gravity_forward_numba import WerSch_numba_v1
 # %%
 # # ! Load EROS geometry from MATLAB file
@@ -158,4 +160,5 @@ pl.camera.up = (0, 0, 1)
 
 pl.window_size = (900, 720)
 
-pl.show()
+pl.screenshot('EROS_Geometry.png');
+# pl.show()
