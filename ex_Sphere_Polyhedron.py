@@ -106,8 +106,8 @@ for col, nsub in enumerate(pickNs):
                                      title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-pl.show()
 # pl.screenshot("Sphere_Polyhedron.png");
+pl.show()
 # %% 
 # # ! End time
 print("="*80)

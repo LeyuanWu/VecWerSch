@@ -81,16 +81,20 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 [View EROS: Green's Third ID convergence](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_2.ipynb)
 
-### Lunar Topography
+### Moon Topography
 - [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
 
-<!-- ![Moon Topography](Figs/Moon_Topography_3D.png) -->
 <div align="center">
-  <img src="Figs/Moon_Topography_3D.png" width="600"/>
+  <img src="Figs/Moon_Topo_Ref1738km_3D.png" width="600"/>
   <p><em>Moon topography 3D view </em></p>
 </div>
 
-[View Moon Topography Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
+<div align="center">
+  <img src="Figs/Moon_FAG_r1748km_3D.png" width="600"/>
+  <p><em>3D view of Moon's Free-air gravity anomaly at r=1748 km </em></p>
+</div>
+
+[Moon topography & gravity overview](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
 ## 🤝 Contributing
 

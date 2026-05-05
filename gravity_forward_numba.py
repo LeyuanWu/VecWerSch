@@ -826,3 +826,5 @@ def green_third_identity_potential_numba(
         V_green[i] = inv_4pi * integral
 
     return V_green
+
+
