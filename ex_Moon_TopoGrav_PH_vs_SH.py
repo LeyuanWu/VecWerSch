@@ -54,23 +54,30 @@ gd_SH = -1.e5 * grd_topoG_moon.rad
 # %% 
 # # ! Computation of topographic potential: Spatial-domain
 res_deg = 0.25
-nc_file = f'./output/moon_topo_gravity_in{int(res_deg*60)}arcmin.nc'
-ds = xr.open_dataset(nc_file)
-gn_PH = pysh.SHGrid.from_xarray(ds['gN'])
-ge_PH = pysh.SHGrid.from_xarray(ds['gE'])
-gd_PH = pysh.SHGrid.from_xarray(ds['gD'])
-d_gn = gn_PH.data - gn_SH.data[::2,::2]
-d_ge = ge_PH.data - ge_SH.data[::2,::2]
-d_gd = gd_PH.data - gd_SH.data[::2,::2]
+nc_file1 = (f'output/moon_topo_gravity_in{int(res_deg*60)}arcmin'
+            f'_out{int(res_deg*60)}arcmin.nc')
+nc_file2 = (f'moon_topo_gravity_in{int(res_deg*60)}arcmin'
+            f'_out{int(res_deg*60)}arcmin.nc')
+ds1 = xr.open_dataset(nc_file1)
+ds2 = xr.open_dataset(nc_file2)
+gn_PH = pysh.SHGrid.from_xarray(ds1['gN'])
+ge_PH = pysh.SHGrid.from_xarray(ds1['gE'])
+gd_PH = pysh.SHGrid.from_xarray(ds1['gD'])
+gn_SH = pysh.SHGrid.from_xarray(ds2['gN'])
+ge_SH = pysh.SHGrid.from_xarray(ds2['gE'])
+gd_SH = pysh.SHGrid.from_xarray(ds2['gD'])
+d_gn = gn_PH.data - gn_SH.data
+d_ge = ge_PH.data - ge_SH.data
+d_gd = gd_PH.data - gd_SH.data
 d_gn[[0, -1], :] = 0.0
 d_ge[[0, -1], :] = 0.0
 print(f'-----------------------------------------------------------')
 print(f'Dif|   min    |   max    |   mean   |   std   ')
 print('GP in m^2/s^2, GV in mGal, and GGT in Eotvos')
 print(f'-----------------------------------------------------------')
-print(f'gN | {d_gn.min():9.4f} | {d_gn.max():9.4f} | {d_gn.mean():9.4f} | {d_gn.std():9.4f}')
-print(f'gE | {d_ge.min():9.4f} | {d_ge.max():9.4f} | {d_ge.mean():9.4f} | {d_ge.std():9.4f}')
-print(f'gD | {d_gd.min():9.4f} | {d_gd.max():9.4f} | {d_gd.mean():9.4f} | {d_gd.std():9.4f}')
+print(f'gN | {d_gn.min():9.4e} | {d_gn.max():9.4e} | {d_gn.mean():9.4e} | {d_gn.std():9.4e}')
+print(f'gE | {d_ge.min():9.4e} | {d_ge.max():9.4e} | {d_ge.mean():9.4e} | {d_ge.std():9.4e}')
+print(f'gD | {d_gd.min():9.4e} | {d_gd.max():9.4e} | {d_gd.mean():9.4e} | {d_gd.std():9.4e}')
 # %% 
 # # ! Mapping: SH vs PH
 grd_d_gd = pysh.SHGrid.from_array(np.abs(d_gd), 
