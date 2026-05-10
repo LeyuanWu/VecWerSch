@@ -104,8 +104,8 @@ grd_topo_moon.plotgmt(fig=fig,
                       cb_tick_interval=1,
                       cb_minor_tick_interval=0.5,
                       shading=False)
-# fig.savefig('Moon_Topo_GMT.png', dpi=400)
-fig.show(width=800)
+fig.savefig('Moon_Topo_GMT.png', dpi=400)
+# fig.show(width=800)
 # %% 
 # # ! Topographic potential
 clm_tgp_moon = clms[-1]
@@ -129,13 +129,13 @@ gz_tgp_moon.plotgmt(fig=fig,
                     cmap_limits=[-800, 800],
                     colorbar='bottom',
                     cb_triangles='both',
-                    cb_label='@[ g_z @[ (mGal)',
+                    cb_label="@[ g_z @[ (mGal)",
                     axes_labelsize=12,
                     cb_tick_interval=200,
                     cb_minor_tick_interval=100,
                     shading=False)
-# fig.savefig('Moon_TopoGz_GMT.png', dpi=400)
-fig.show(width=800)
+fig.savefig('Moon_TopoGz_GMT.png', dpi=400)
+# fig.show(width=800)
 # %% 
 # # ! Save gx, gy, gz to NetCDF
 nc_file = f'moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'

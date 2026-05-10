@@ -54,7 +54,7 @@ gd_SH = -1.e5 * grd_topoG_moon.rad
 # %% 
 # # ! Computation of topographic potential: Spatial-domain
 res_deg = 0.25
-nc_file = f'./Results/moon_topo_gravity_res{int(res_deg*60)}arcmin.nc'
+nc_file = f'./output/moon_topo_gravity_in{int(res_deg*60)}arcmin.nc'
 ds = xr.open_dataset(nc_file)
 gn_PH = pysh.SHGrid.from_xarray(ds['gN'])
 ge_PH = pysh.SHGrid.from_xarray(ds['gE'])

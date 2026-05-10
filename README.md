@@ -96,6 +96,8 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
 
 [Moon topography & gravity overview](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
+[Moon topographic gravitational potential computation: SH](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Comp_SH.ipynb)
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
