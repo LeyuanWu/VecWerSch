@@ -35,7 +35,7 @@ grd_topo_moon = grd_shp_moon/ 1.e3 - r_itfc_km
 # %% 
 # # ! Load TGP data: SH vs PH
 #### * SH
-max_nmax = 6
+max_nmax = 7
 nc_file_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
 data_SH = xr.open_dataset(nc_file_SH)
 gn_SH = data_SH['gx'].data[::max_nmax, ::max_nmax]
