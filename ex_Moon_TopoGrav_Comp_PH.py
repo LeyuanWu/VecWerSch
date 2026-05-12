@@ -50,10 +50,12 @@ clm_shp_moon = \
                             name='LOLA_shape (Moon)',
                             units='m', format='bshc')
 r_itfc_km = clm_shp_moon.coeffs[0,0,0] / 1.e3
-in_res = 6.0/60.0 # degree
+in_res = 15.0/60.0 # degree
 lmax_grid = int(90.0/in_res - 1)
 grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
                                    lmax_calc=lmax_shp)
+grd_topo_moon = grd_shp_moon/1.e3 - r_itfc_km
+# grd_topo_moon.to_netcdf(f'moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc')
 # %% 
 # # ! Computation of TGP: Polyhedron
 rho0 = 2560.0 # kg/m^3
@@ -63,7 +65,7 @@ Verts = mesh_shp_moon.points / 1.e3 # km
 Faces = mesh_shp_moon.regular_faces
 del mesh_shp_moon
 #### * Calculation points
-out_res = 15.0/60.0 # degree
+out_res = 600.0/60.0 # degree
 lon_1D = np.arange(0, 360+out_res, out_res)
 lat_1D = np.arange(90, -90-out_res, -out_res)
 [LON_2D, LAT_2D] = np.meshgrid(np.deg2rad(lon_1D), np.deg2rad(lat_1D))
