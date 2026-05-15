@@ -32,7 +32,7 @@ r_itfc = clm_shp_moon.coeffs[0,0,0]
 # %% 
 # # ! Computation of topographic potential: Spectral-domain 
 rho0 = 2560.0 # kg/m^3
-max_nmax = 6
+max_nmax = 7
 NMAXs = np.arange(1, max_nmax+1)
 clms = []
 print('*'*32+'\n' + 'Computation of Topographic Potential: Spectral-domain\n' + '*'*32)
@@ -104,8 +104,8 @@ grd_topo_moon.plotgmt(fig=fig,
                       cb_tick_interval=1,
                       cb_minor_tick_interval=0.5,
                       shading=False)
-fig.savefig('Moon_Topo_GMT.png', dpi=400)
-# fig.show(width=800)
+# fig.savefig('Moon_Topo_GMT.png', dpi=400)
+fig.show(width=800)
 # %% 
 # # ! Topographic potential
 clm_tgp_moon = clms[-1]
@@ -134,21 +134,29 @@ gz_tgp_moon.plotgmt(fig=fig,
                     cb_tick_interval=200,
                     cb_minor_tick_interval=100,
                     shading=False)
-fig.savefig('Moon_TopoGz_GMT.png', dpi=400)
-# fig.show(width=800)
+# fig.savefig('Moon_TopoGz_GMT.png', dpi=400)
+fig.show(width=800)
 # %% 
 # # ! Save gx, gy, gz to NetCDF
-nc_file = f'moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
 lat = gz_tgp_moon.lats()
 lon = gz_tgp_moon.lons()
-res = int(180 * 60 / (len(lat) - 1))
-xr.Dataset(
-    {'gx': (('latitude', 'longitude'), arr_gx),
-     'gy': (('latitude', 'longitude'), arr_gy),
-     'gz': (('latitude', 'longitude'), arr_gz)},
+data_vars = {
+    'gx': (('latitude', 'longitude'), arr_gx),
+    'gy': (('latitude', 'longitude'), arr_gy),
+    'gz': (('latitude', 'longitude'), arr_gz)}
+
+ds = xr.Dataset(
+    data_vars=data_vars,
     coords={'longitude': lon, 'latitude': lat},
-    attrs={'units': 'mGal', 'reference_radius_m': r_calc, 'density_kg_m3': rho0}
-).to_netcdf(nc_file)
+    attrs={'description': 'Topographic gravity vector components of the Moon',
+           'input shape model': f'LOLA_shape (Moon) with lmax={lmax_shp}',
+           'nmax': max_nmax,
+           'r_calc_m': r_calc,
+           'ref_radius_m': r_itfc, 
+           'rho_kg_m3': rho0, 
+           'units': 'mGal'})
+nc_file = f'moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
+ds.to_netcdf(nc_file)
 print(f"Saved to '{nc_file}'")  
 # %% 
 # # ! End time

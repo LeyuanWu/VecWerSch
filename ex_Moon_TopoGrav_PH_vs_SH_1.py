@@ -16,24 +16,13 @@ print("=" * 80)
 print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
 print("=" * 80)
 # %% 
-# # ! Constants
-myG = 6.67430e-11
-r_calc_km = 1748000.0 / 1.e3
-# %% 
-# # ! Shape of Moon
-#### * Shape
+# # ! Load Topo data
+#### * Topography
 lmax_shp = 359
-clm_shp_moon = \
-    pysh.SHCoeffs.from_file(f'input/Moon_shape_719.sh', 
-                            lmax=lmax_shp, 
-                            name='LOLA_shape (Moon)',
-                            units='m', format='bshc')
-r_itfc_km = clm_shp_moon.coeffs[0,0,0] / 1.e3
 in_res = 15.0/60.0 # degree
-lmax_grid = int(90.0/in_res - 1)
-grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
-                                   lmax_calc=lmax_shp)
-grd_topo_moon = grd_shp_moon/ 1.e3 - r_itfc_km
+nc_file_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
+data_Topo = xr.open_dataset(nc_file_Topo)
+grd_topo_moon = data_Topo['topo'].data
 # %% 
 # # ! Load TGP data: SH vs PH
 #### * SH

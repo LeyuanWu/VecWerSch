@@ -55,7 +55,11 @@ lmax_grid = int(90.0/in_res - 1)
 grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
                                    lmax_calc=lmax_shp)
 grd_topo_moon = grd_shp_moon/1.e3 - r_itfc_km
-# grd_topo_moon.to_netcdf(f'moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc')
+nc_file_topo = f'moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
+grd_topo_moon.to_netcdf(filename = nc_file_topo,
+                        title = f'Moon topography (shape model up to degree {lmax_shp})',
+                        name='topo', units='km')
+print(f"Saved to '{nc_file_topo}'")
 # %% 
 # # ! Computation of TGP: Polyhedron
 rho0 = 2560.0 # kg/m^3
@@ -135,10 +139,10 @@ ds = xr.Dataset(
            'ref_radius_km': r_itfc_km,
            'rho_kg_m3': rho0,
            'resolution_deg': out_res})
-nc_file = (f"moon_topo_gravity_in{int(in_res*60)}arcmin"
-           f"_out{int(out_res*60)}arcmin.nc")
-ds.to_netcdf(nc_file)
-print(f"Saved to '{nc_file}'")
+nc_file_grav = (f"moon_topo_gravity_in{int(in_res*60)}arcmin"
+                f"_out{int(out_res*60)}arcmin.nc")
+ds.to_netcdf(nc_file_grav)
+print(f"Saved to '{nc_file_grav}'")
 # %% 
 # # ! End time
 print("=" * 80)
