@@ -3,7 +3,7 @@
 #########################################################################
 # %% 
 # # ! Setup
-import numpy as np
+import pandas as pd
 import pyshtools as pysh
 import pygmt
 import xarray as xr
@@ -16,24 +16,13 @@ print("=" * 80)
 print(f"Start time: [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
 print("=" * 80)
 # %% 
-# # ! Constants
-myG = 6.67430e-11
-r_calc_km = 1748000.0 / 1.e3
-# %% 
-# # ! Shape of Moon
-#### * Shape
+# # ! Load Topo data
+#### * Topography
 lmax_shp = 359
-clm_shp_moon = \
-    pysh.SHCoeffs.from_file(f'input/Moon_shape_719.sh', 
-                            lmax=lmax_shp, 
-                            name='LOLA_shape (Moon)',
-                            units='m', format='bshc')
-r_itfc_km = clm_shp_moon.coeffs[0,0,0] / 1.e3
-in_res = 6.0/60.0 # degree
-lmax_grid = int(90.0/in_res - 1)
-grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
-                                   lmax_calc=lmax_shp)
-grd_topo_moon = grd_shp_moon/ 1.e3 - r_itfc_km
+res_top = 15.0/60.0 # degree
+nc_file_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*res_top)}arcmin.nc'
+data_Topo = xr.open_dataset(nc_file_Topo)
+arr_Topo_moon = data_Topo['topo'].data
 # %% 
 # # ! Load TGP data: SH vs PH
 #### * SH
@@ -45,47 +34,76 @@ ge_SH = data_SH['gy'].data[::max_nmax, ::max_nmax]
 gd_SH = data_SH['gz'].data[::max_nmax, ::max_nmax]
 #### * PH
 out_res = 15.0/60.0 # degree
-nc_file_PH = (f"output/moon_topo_gravity_in{int(in_res*60)}arcmin"
-              f"_out{int(out_res*60)}arcmin.nc")
-data_PH = xr.open_dataset(nc_file_PH)
-gn_PH = data_PH['gN'].data
-ge_PH = data_PH['gE'].data
-gd_PH = data_PH['gD'].data
+in_res_1 = 15.0/60.0 # degree
+in_res_2 = 6.0/60.0 # degree
+nc_file_PH_1 = (f"output/moon_topo_gravity_in{int(in_res_1*60)}arcmin"
+                f"_out{int(out_res*60)}arcmin.nc")
+nc_file_PH_2 = (f"output/moon_topo_gravity_in{int(in_res_2*60)}arcmin"
+                f"_out{int(out_res*60)}arcmin.nc")
+data_PH_1 = xr.open_dataset(nc_file_PH_1)
+data_PH_2 = xr.open_dataset(nc_file_PH_2)
+gn_PH_1 = data_PH_1['gN'].data
+ge_PH_1 = data_PH_1['gE'].data
+gd_PH_1 = data_PH_1['gD'].data
+gn_PH_2 = data_PH_2['gN'].data
+ge_PH_2 = data_PH_2['gE'].data
+gd_PH_2 = data_PH_2['gD'].data
 #### * Diff = PH - SH
-d_gn, d_ge, d_gd = gn_PH - gn_SH, ge_PH - ge_SH, gd_PH - gd_SH
-d_gn[[0, -1], :] = 0.0
-d_ge[[0, -1], :] = 0.0
+d_gn_1, d_ge_1, d_gd_1 = gn_PH_1 - gn_SH, ge_PH_1 - ge_SH, gd_PH_1 - gd_SH
+d_gn_2, d_ge_2, d_gd_2 = gn_PH_2 - gn_SH, ge_PH_2 - ge_SH, gd_PH_2 - gd_SH
+d_gn_1[[0, -1], :] = 0.0
+d_ge_1[[0, -1], :] = 0.0
+d_gd_1[[0, -1], :] = 0.0
+d_gn_2[[0, -1], :] = 0.0
+d_ge_2[[0, -1], :] = 0.0
+d_gd_2[[0, -1], :] = 0.0
 #### * Summary statistics
 g_SH = {'N': gn_SH, 'E': ge_SH, 'D': gd_SH}
-g_PH = {'N': gn_PH, 'E': ge_PH, 'D': gd_PH}
-d_g  = {'N': d_gn,  'E': d_ge,  'D': d_gd}
+g_PH_1 = {'N': gn_PH_1, 'E': ge_PH_1, 'D': gd_PH_1}
+g_PH_2 = {'N': gn_PH_2, 'E': ge_PH_2, 'D': gd_PH_2}
+d_g_1 = {'N': d_gn_1, 'E': d_ge_1, 'D': d_gd_1}
+d_g_2 = {'N': d_gn_2, 'E': d_ge_2, 'D': d_gd_2}
 print('-' * 80)
 print('Gravity Vector components in mGal')
-print(f"{'Type':4s} | {'Comp':4s} | {'min':>9s} | {'max':>9s} | {'mean':>9s} | {'std':>9s}")
+print(f"{'Type':18s} | {'Comp':4s} | {'min':>9s} | {'max':>9s} |"
+      f" {'mean':>9s} | {'std':>9s}")
 print('-' * 80)
-datasets = {'SH': g_SH, 'PH': g_PH, 'Diff': d_g}
-for typ in ['SH', 'PH', 'Diff']:
+datasets = {'SH': g_SH, 'PH (15 arcmin)': g_PH_1, 'PH (6 arcmin)': g_PH_2, 
+            'Diff (15 arcmin)': d_g_1, 'Diff (6 arcmin)': d_g_2}
+for typ in ['SH', 'PH (15 arcmin)', 'PH (6 arcmin)', 
+            'Diff (15 arcmin)', 'Diff (6 arcmin)']:
     for comp in ['N', 'E', 'D']:
         data = datasets[typ][comp]
-        print(f"{typ:4s} | {f'g{comp}':4s} | {data.min():9.4f} | {data.max():9.4f} | "
-              f"{data.mean():9.4f} | {data.std():9.4f}")
+        print(f"{typ:18s} | {f'g{comp}':4s} |"
+              f" {data.min():9.4f} | {data.max():9.4f} |"
+              f" {data.mean():9.4f} | {data.std():9.4f}")
     print('=' * 60)
 # %% 
 # # ! Mapping: SH vs PH
 err_txt = ['A','B','C','D','E','F','G','H','I','J']
-xr_gd_PH = pysh.SHGrid.from_array(gd_PH).to_xarray()
-xr_d_gd = pysh.SHGrid.from_array(d_gd).to_xarray()
+xr_Topo = pysh.SHGrid.from_array(arr_Topo_moon).to_xarray()
+xr_gd_SH = pysh.SHGrid.from_array(gd_SH).to_xarray()
+xr_d_gd_1 = pysh.SHGrid.from_array(d_gd_1).to_xarray()
+xr_d_gd_2 = pysh.SHGrid.from_array(d_gd_2).to_xarray()
 fig = pygmt.Figure()
-with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16c'), margins="0.5c"):
+with fig.subplot(nrows=2, ncols=2, figsize=('14c', '8.5c'), margins="0.5c"):
     with fig.set_panel(panel=0): 
-        fig.grdimage(grid=xr_gd_PH, projection="W-90/14c", cmap="haxby", frame="g30")
-        fig.colorbar(position="JBC+o0/0.2i+w10c/0.3h", 
-                     frame=["a200f100", "x+l@[ g_z @[", "y+lmGal"])    
+        fig.grdimage(grid=xr_Topo, projection="W-90/7c", cmap="haxby", frame="g30")
+        fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
+                     frame=["a2f1", "x+lTopography", "y+lkm"])    
     with fig.set_panel(panel=1): 
-        fig.grdimage(grid=xr_d_gd, projection="W-90/14c", cmap="haxby", frame="g30")
-        fig.colorbar(position="JBC+o0/0.2i+w10c/0.3h", 
-                     frame=["a1f1", "x+l@[ \\delta(g_z) @[", "y+lmGal"])    
-# fig.savefig('Moon_TopoGz_PH_vs_SH_2.png', dpi=400)
+        fig.grdimage(grid=xr_gd_SH, projection="W-90/7c", cmap="haxby", frame="g30")
+        fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
+                     frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
+    with fig.set_panel(panel=2): 
+        fig.grdimage(grid=xr_d_gd_1, projection="W-90/7c", cmap="haxby", frame="g30")
+        fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
+                     frame=["a5f5", "x+l@[ g_z^{ph1}-g_z^{sh} @[", "y+lmGal"])    
+    with fig.set_panel(panel=3): 
+        fig.grdimage(grid=xr_d_gd_2, projection="W-90/7c", cmap="haxby", frame="g30")
+        fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
+                     frame=["a1f0.5", "x+l@[ g_z^{ph2}-g_z^{sh} @[", "y+lmGal"])    
+fig.savefig('Moon_TopoGz_PH_vs_SH.png', dpi=400)
 fig.show(width=800)
 # %% 
 # # ! End time

@@ -4,10 +4,10 @@
 # %% 
 # # ! Setup
 import numpy as np
+import pandas as pd
 import pyshtools as pysh
 import pygmt
 import xarray as xr
-import time
 from datetime import datetime
 from gravity_forward_numba import *
 # %% 
@@ -96,36 +96,51 @@ print("=" * 104)
 print(f"{'Rank':>4} | {'Lat (°)':>8} | {'Lon (°)':>8} | {'Topo (m)':>9} | "
       f"{'gD_SH':>10} | {'gD_PH':>10} | {'Error':>9} | {'|Error|':>9}")
 print("-" * 104)
+records = []
 for idx in range(len(pk_flat_idx)):
     i_lat, j_lon = lat_indices[idx], lon_indices[idx]
-    topo_m = grd_topo_moon.data[i_lat, j_lon] * 1.e3
+    topo_m = grd_topo_moon[i_lat, j_lon] * 1e3
     gd_sh_val = gd_SH[i_lat, j_lon]
     gd_ph_val = gd_PH[i_lat, j_lon]
     err = d_gd[i_lat, j_lon]
+    abs_err = abs(err)
     print(f"{idx+1:4d} | {lats_1d[i_lat]:8.3f} | {lons_1d[j_lon]:8.3f} | {topo_m:9.1f} | "
-          f"{gd_sh_val:10.4f} | {gd_ph_val:10.4f} | {err:9.4f} | {np.abs(err):9.4f}")
+          f"{gd_sh_val:10.4f} | {gd_ph_val:10.4f} | {err:9.4f} | {abs_err:9.4f}")
+    records.append({
+        "Rank": idx + 1,
+        "Lat_deg": lats_1d[i_lat],
+        "Lon_deg": lons_1d[j_lon],
+        "Topo_m": topo_m,
+        "gD_SH": gd_sh_val,
+        "gD_PH": gd_ph_val,
+        "Error": err,
+        "AbsErr": abs_err
+    })
 print("=" * 104)
+df_errors = pd.DataFrame(records)
+df_errors.to_csv("Moon_gD_errors.csv", index=False, float_format="%.4f")
+print(f"\nTable data saved to: Moon_gD_errors.csv")
 # %% 
 # # ! Mapping: SH vs PH
 err_txt = ['A','B','C','D','E','F','G','H','I','J']
-xr_gd_PH = pysh.SHGrid.from_array(gd_PH).to_xarray()
+xr_gd_SH = pysh.SHGrid.from_array(gd_SH).to_xarray()
 xr_d_gd = pysh.SHGrid.from_array(d_gd).to_xarray()
 fig = pygmt.Figure()
-with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16c'), margins="0.5c"):
+with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16.5c'), margins="0.5c"):
     with fig.set_panel(panel=0): 
-        fig.grdimage(grid=xr_gd_PH, projection="W-90/14c", cmap="haxby", frame="g30")
+        fig.grdimage(grid=xr_gd_SH, projection="W-90/14c", cmap="haxby", frame="g30")
         fig.plot(x=lons_1d[lon_indices], y=lats_1d[lat_indices], 
                  projection="W-90/14c", transparency=25,
                  style="t0.25c", fill="white", pen="0.25p,black")
         fig.text(x=lons_1d[lon_indices], y=lats_1d[lat_indices], text=err_txt, 
-                 justify="BL", offset="0.06c/0.0c", font="7p,Helvetica-Bold,black")
-        fig.colorbar(position="JBC+o0/0.2i+w10c/0.3h", 
-                     frame=["a200f100", "x+l@[ g_z @[", "y+lmGal"])    
+                 justify="BL", offset="0.06c/-0.15c", font="7p,Helvetica-Bold,black")
+        fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
+                     frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
     with fig.set_panel(panel=1): 
         fig.grdimage(grid=xr_d_gd, projection="W-90/14c", cmap="haxby", frame="g30")
-        fig.colorbar(position="JBC+o0/0.2i+w10c/0.3h", 
-                     frame=["a5f5", "x+l@[ \\delta(g_z) @[", "y+lmGal"])    
-fig.savefig('Moon_TopoGz_PH_vs_SH_1.png', dpi=400)
+        fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
+                     frame=["a5f5", "x+l@[ g_z^{ph}-g_z^{sh} @[", "y+lmGal"])    
+# fig.savefig('Moon_TopoGz_PH_vs_SH_1.png', dpi=400)
 fig.show(width=800)
 # %% 
 # # ! End time
