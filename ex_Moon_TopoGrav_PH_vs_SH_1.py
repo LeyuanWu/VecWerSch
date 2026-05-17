@@ -133,13 +133,15 @@ with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16.5c'), margins="0.5c"):
                  projection="W-90/14c", transparency=25,
                  style="t0.25c", fill="white", pen="0.25p,black")
         fig.text(x=lons_1d[lon_indices], y=lats_1d[lat_indices], text=err_txt, 
-                 justify="BL", offset="0.06c/-0.15c", font="7p,Helvetica-Bold,black")
+                 projection="W-90/14c", justify="BL", 
+                 offset="0.06c/0.0c", font="7p,Helvetica-Bold,black")
         fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
                      frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
     with fig.set_panel(panel=1): 
         fig.grdimage(grid=xr_d_gd, projection="W-90/14c", cmap="haxby", frame="g30")
+        xlabel = r"@[ g_z^{ph}-g_z^{sh}: \Delta \lambda = \Delta \theta = 15^{\prime}@["
         fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
-                     frame=["a5f5", "x+l@[ g_z^{ph}-g_z^{sh} @[", "y+lmGal"])    
+                     frame=["a5f5", f"x+l{xlabel}", "y+lmGal"])    
 # fig.savefig('Moon_TopoGz_PH_vs_SH_1.png', dpi=400)
 fig.show(width=800)
 # %% 

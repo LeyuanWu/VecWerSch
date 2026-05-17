@@ -94,6 +94,11 @@ conda install numpy numba matplotlib pyvista pygmt pyshtools
   <p><em>3D view of Moon's Free-air gravity anomaly at r=1748 km </em></p>
 </div>
 
+<div align="center">
+  <img src="Figs/Moon_TopoGz_PH_vs_SH_2.png" width="600"/>
+  <p><em>Moon's TGP computation comparison: SH vs PH method </em></p>
+</div>
+
 [Moon topography & gravity overview](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
 
 [Moon TGP computation: SH](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Comp_SH.ipynb)

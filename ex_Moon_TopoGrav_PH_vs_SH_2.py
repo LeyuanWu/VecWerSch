@@ -77,7 +77,12 @@ for typ in ['SH', 'PH (15 arcmin)', 'PH (6 arcmin)',
         print(f"{typ:18s} | {f'g{comp}':4s} |"
               f" {data.min():9.4f} | {data.max():9.4f} |"
               f" {data.mean():9.4f} | {data.std():9.4f}")
-    print('=' * 60)
+    print('=' * 80)
+# %% 
+# # ! Load Top-N largest |gD| errors
+df_errors = pd.read_csv('output/Moon_gD_errors.csv')
+err_lat = df_errors['Lat_deg'].values
+err_lon = df_errors['Lon_deg'].values
 # %% 
 # # ! Mapping: SH vs PH
 err_txt = ['A','B','C','D','E','F','G','H','I','J']
@@ -86,9 +91,15 @@ xr_gd_SH = pysh.SHGrid.from_array(gd_SH).to_xarray()
 xr_d_gd_1 = pysh.SHGrid.from_array(d_gd_1).to_xarray()
 xr_d_gd_2 = pysh.SHGrid.from_array(d_gd_2).to_xarray()
 fig = pygmt.Figure()
-with fig.subplot(nrows=2, ncols=2, figsize=('14c', '8.5c'), margins="0.5c"):
+with fig.subplot(nrows=2, ncols=2, figsize=('14c', '8.8c'), margins="0.5c"):
     with fig.set_panel(panel=0): 
         fig.grdimage(grid=xr_Topo, projection="W-90/7c", cmap="haxby", frame="g30")
+        fig.plot(x=err_lon, y=err_lat, 
+                 projection="W-90/7c", transparency=25,
+                 style="t0.15c", fill="white", pen="0.25p,black")
+        fig.text(x=err_lon, y=err_lat, text=err_txt, 
+                 projection="W-90/7c", justify="BL", 
+                 offset="0.05c/0.0c", font="5p,Helvetica-Bold,black")
         fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
                      frame=["a2f1", "x+lTopography", "y+lkm"])    
     with fig.set_panel(panel=1): 
@@ -97,13 +108,15 @@ with fig.subplot(nrows=2, ncols=2, figsize=('14c', '8.5c'), margins="0.5c"):
                      frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
     with fig.set_panel(panel=2): 
         fig.grdimage(grid=xr_d_gd_1, projection="W-90/7c", cmap="haxby", frame="g30")
+        xlabel = r"@[ g_z^{ph}-g_z^{sh}: \Delta \lambda = \Delta \theta = 15^{\prime}@["
         fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
-                     frame=["a5f5", "x+l@[ g_z^{ph1}-g_z^{sh} @[", "y+lmGal"])    
+                     frame=["a5f5", f"x+l{xlabel}", "y+lmGal"])    
     with fig.set_panel(panel=3): 
         fig.grdimage(grid=xr_d_gd_2, projection="W-90/7c", cmap="haxby", frame="g30")
+        xlabel = r"@[ g_z^{ph}-g_z^{sh}: \Delta \lambda = \Delta \theta = 6^{\prime}@["
         fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
-                     frame=["a1f0.5", "x+l@[ g_z^{ph2}-g_z^{sh} @[", "y+lmGal"])    
-fig.savefig('Moon_TopoGz_PH_vs_SH.png', dpi=400)
+                     frame=["a1f0.5", f"x+l{xlabel}", "y+lmGal"])    
+fig.savefig('Moon_TopoGz_PH_vs_SH_2.png', dpi=400)
 fig.show(width=800)
 # %% 
 # # ! End time
