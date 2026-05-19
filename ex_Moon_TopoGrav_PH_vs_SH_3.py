@@ -3,10 +3,11 @@
 #########################################################################
 # %% 
 # # ! Setup
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import pyshtools as pysh
 import pyvista as pv
-import xarray as xr
 import time
 from datetime import datetime
 from gravity_forward_numba import *
@@ -42,7 +43,7 @@ err_lon = df_errors['Lon_deg'].values
 err_lat_rad = np.deg2rad(err_lat)
 err_lon_rad = np.deg2rad(err_lon)
 gD_SH = df_errors['gD_SH'].values
-df_SH_PHs = df_errors[['Lat_deg', 'Lon_deg', 'gD_SH']].copy()
+df_SH_PHs = df_errors[['Lat_deg', 'Lon_deg', 'Topo_m', 'gD_SH']].copy()
 # %% 
 # # ! Computation of TGP: Polyhedron
 #### * Shape of Moon
@@ -60,7 +61,7 @@ xps = r_calc_km * np.cos(err_lat_rad) * np.cos(err_lon_rad)
 yps = r_calc_km * np.cos(err_lat_rad) * np.sin(err_lon_rad)
 zps = r_calc_km * np.sin(err_lat_rad)
 #### * Computation of TGP
-IN_RES = [15.0/60.0, 6.0/60.0, 3.0/60.0, 2.0/60.0, 1.0/60.0] # degree
+IN_RES = np.array([15.0, 10.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0]) / 60.0 # degree
 for in_res in IN_RES:
     nc_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
     grd_topo_moon = pysh.SHGrid.from_netcdf(nc_Topo)
@@ -91,6 +92,29 @@ for in_res in IN_RES:
                                 Txx, Txy, Txz, Tyy, Tyz, Tzz)
     df_SH_PHs[f'gD_PH_{int(60*in_res)}'] = np.round(gD, 4)
     df_SH_PHs[f'e_gD_PH_{int(60*in_res)}'] = np.round(gD - gD_SH, 4)
+# %% 
+# # ! Plot error reduction vs. resolution
+RES_ARCMIN = sorted([int(60 * in_res) for in_res in IN_RES])
+error_cols = [f'e_gD_PH_{res}' for res in RES_ARCMIN]
+errors_abs = df_SH_PHs[error_cols].abs()
+nP = len(df_SH_PHs)
+plt.figure(figsize=(7, 5))
+colors = plt.cm.tab20(np.linspace(0, 1, min(nP, 20)))
+err_txt = ['A','B','C','D','E','F','G','H','I','J']
+for i in range(nP):
+    color = colors[i % len(colors)]
+    plt.plot(RES_ARCMIN[::-1], errors_abs.iloc[i].values[::-1], 
+             marker='o', ms=5, color=color, label=f'{err_txt[i]}')
+plt.xlabel('Geographic grid resolution (arcmin)')
+plt.ylabel('Absolute error in $g_z$ (mGal)')
+plt.xticks(RES_ARCMIN[::-1])
+plt.yticks([0, 1, 5, 10, 15, 20])
+plt.gca().invert_xaxis()
+plt.axhline(y=1, color='black', linestyle='--', linewidth=1.0, alpha=1.0)
+plt.grid(which='both', linestyle='--', alpha=0.8)
+plt.legend(loc='upper right', fontsize='small', ncol=2)
+plt.tight_layout()
+plt.show()
 # %% 
 # # ! End time
 print("=" * 80)

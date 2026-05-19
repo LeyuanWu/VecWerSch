@@ -60,9 +60,9 @@ for typ in ['SH', 'PH', 'Diff']:
               f"{data.mean():9.4f} | {data.std():9.4f}")
     print('=' * 60)
 # %% 
-# # ! Top-N largest |gD| errors (PH - SH) with >500 km separation
+# # ! Top-N largest |gD| errors (PH - SH) with >1000 km separation
 n_largest = 10
-min_dist_km = 500.0
+min_dist_km = 1000.0
 R_moon = 1737.4  # km
 abs_err = np.abs(d_gd).flatten()
 idx_sorted = np.argsort(-abs_err)
@@ -128,7 +128,8 @@ xr_d_gd = pysh.SHGrid.from_array(d_gd).to_xarray()
 fig = pygmt.Figure()
 with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16.5c'), margins="0.5c"):
     with fig.set_panel(panel=0): 
-        fig.grdimage(grid=xr_gd_SH, projection="W-90/14c", cmap="haxby", frame="g30")
+        fig.grdimage(grid=xr_gd_SH, projection="W-90/14c", 
+                     cmap="haxby", frame="g30")
         fig.plot(x=lons_1d[lon_indices], y=lats_1d[lat_indices], 
                  projection="W-90/14c", transparency=25,
                  style="t0.25c", fill="white", pen="0.25p,black")
@@ -138,7 +139,8 @@ with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16.5c'), margins="0.5c"):
         fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
                      frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
     with fig.set_panel(panel=1): 
-        fig.grdimage(grid=xr_d_gd, projection="W-90/14c", cmap="haxby", frame="g30")
+        fig.grdimage(grid=xr_d_gd, projection="W-90/14c", 
+                     cmap="haxby", frame="g30")
         xlabel = r"@[ g_z^{ph}-g_z^{sh}: \Delta \lambda = \Delta \theta = 15^{\prime}@["
         fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
                      frame=["a5f5", f"x+l{xlabel}", "y+lmGal"])    
