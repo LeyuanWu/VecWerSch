@@ -20,26 +20,26 @@ print("=" * 80)
 #### * Topography
 lmax_shp = 359
 in_res = 15.0/60.0 # degree
-nc_file_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
-data_Topo = xr.open_dataset(nc_file_Topo)
-grd_topo_moon = data_Topo['topo'].data
+nc_topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
+xr_topo = xr.open_dataset(nc_topo)
+arr_topo = xr_topo['topo'].data
 # %% 
 # # ! Load TGP data: SH vs PH
 #### * SH
 max_nmax = 7
-nc_file_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
-data_SH = xr.open_dataset(nc_file_SH)
-gn_SH = data_SH['gx'].data[::max_nmax, ::max_nmax]
-ge_SH = data_SH['gy'].data[::max_nmax, ::max_nmax]
-gd_SH = data_SH['gz'].data[::max_nmax, ::max_nmax]
+nc_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
+xr_SH = xr.open_dataset(nc_SH)
+gn_SH = xr_SH['gx'].data[::max_nmax, ::max_nmax]
+ge_SH = xr_SH['gy'].data[::max_nmax, ::max_nmax]
+gd_SH = xr_SH['gz'].data[::max_nmax, ::max_nmax]
 #### * PH
 out_res = 15.0/60.0 # degree
-nc_file_PH = (f"output/moon_topo_gravity_in{int(in_res*60)}arcmin"
-              f"_out{int(out_res*60)}arcmin.nc")
-data_PH = xr.open_dataset(nc_file_PH)
-gn_PH = data_PH['gN'].data
-ge_PH = data_PH['gE'].data
-gd_PH = data_PH['gD'].data
+nc_PH = (f"output/moon_topo_gravity_in{int(in_res*60)}arcmin"
+         f"_out{int(out_res*60)}arcmin.nc")
+xr_PH = xr.open_dataset(nc_PH)
+gn_PH = xr_PH['gN'].data
+ge_PH = xr_PH['gE'].data
+gd_PH = xr_PH['gD'].data
 #### * Diff = PH - SH
 d_gn, d_ge, d_gd = gn_PH - gn_SH, ge_PH - ge_SH, gd_PH - gd_SH
 d_gn[[0, -1], :] = 0.0
@@ -62,19 +62,19 @@ for typ in ['SH', 'PH', 'Diff']:
 # %% 
 # # ! Top-N largest |gD| errors (PH - SH) with >1000 km separation
 n_largest = 10
-min_dist_km = 1000.0
+min_dist = 1000.0
 R_moon = 1737.4  # km
 abs_err = np.abs(d_gd).flatten()
 idx_sorted = np.argsort(-abs_err)
-lats_1d = data_PH['latitude'].data
-lons_1d = data_PH['longitude'].data
+lats_1d = xr_PH['latitude'].data
+lons_1d = xr_PH['longitude'].data
 nlat, nlon = d_gd.shape
 pk_flat_idx = []
 for idx in idx_sorted:
     if len(pk_flat_idx) >= n_largest:
         break
-    i_lat, j_lon = np.unravel_index(idx, (nlat, nlon))
-    lat_new, lon_new = np.radians([lats_1d[i_lat], lons_1d[j_lon]])
+    i, j = np.unravel_index(idx, (nlat, nlon))
+    lat_new, lon_new = np.radians([lats_1d[i], lons_1d[j]])
     keep = True
     for idx_sel in pk_flat_idx:
         ii, jj = np.unravel_index(idx_sel, (nlat, nlon))
@@ -84,42 +84,41 @@ for idx in idx_sorted:
         # Haversine formula
         a = np.sin(dlat/2)**2 + np.cos(lat_new)*np.cos(lat_old)*np.sin(dlon/2)**2
         dist_km = R_moon * 2 * np.arcsin(np.sqrt(a))
-        if dist_km < min_dist_km:
+        if dist_km < min_dist:
             keep = False
             break
     if keep:
         pk_flat_idx.append(idx)
 lat_indices, lon_indices = np.unravel_index(pk_flat_idx, (nlat, nlon))
-print("=" * 104)
-print(f"Top {n_largest} largest |gD| errors (PH - SH), >{min_dist_km} km apart")
-print("=" * 104)
-print(f"{'Rank':>4} | {'Lat (°)':>8} | {'Lon (°)':>8} | {'Topo (m)':>9} | "
-      f"{'gD_SH':>10} | {'gD_PH':>10} | {'Error':>9} | {'|Error|':>9}")
-print("-" * 104)
+print("=" * 100)
+print(f"Top {n_largest} largest |gD| errors (PH - SH), >{min_dist} km apart")
+print("Topography in m, Gravity vector components in mGal")
+print("=" * 100)
+print(f"{'Lat (°)':>8} | {'Lon (°)':>8} | {'Topo':>6} | "
+      f"{'gN_SH':>9} | {'err_gN':>9} | "
+      f"{'gE_SH':>9} | {'err_gE':>9} | "
+      f"{'gD_SH':>9} | {'err_gD':>9}")
+print("-" * 100)
 records = []
 for idx in range(len(pk_flat_idx)):
-    i_lat, j_lon = lat_indices[idx], lon_indices[idx]
-    topo_m = grd_topo_moon[i_lat, j_lon] * 1e3
-    gd_sh_val = gd_SH[i_lat, j_lon]
-    gd_ph_val = gd_PH[i_lat, j_lon]
-    err = d_gd[i_lat, j_lon]
-    abs_err = abs(err)
-    print(f"{idx+1:4d} | {lats_1d[i_lat]:8.3f} | {lons_1d[j_lon]:8.3f} | {topo_m:9.1f} | "
-          f"{gd_sh_val:10.4f} | {gd_ph_val:10.4f} | {err:9.4f} | {abs_err:9.4f}")
-    records.append({
-        "Rank": idx + 1,
-        "Lat_deg": lats_1d[i_lat],
-        "Lon_deg": lons_1d[j_lon],
-        "Topo_m": topo_m,
-        "gD_SH": gd_sh_val,
-        "gD_PH": gd_ph_val,
-        "Error": err,
-        "AbsErr": abs_err
-    })
-print("=" * 104)
+    i, j = lat_indices[idx], lon_indices[idx]
+    topo_m = arr_topo[i, j] * 1e3
+    gn_sh, ge_sh, gd_sh = gn_SH[i, j], ge_SH[i, j], gd_SH[i, j]
+    gn_ph, ge_ph, gd_ph = gn_PH[i, j], ge_PH[i, j], gd_PH[i, j]
+    err_gn, err_ge, err_gd = gn_ph - gn_sh, ge_ph - ge_sh, gd_ph - gd_sh
+    print(f"{lats_1d[i]:8.3f} | {lons_1d[j]:8.3f} | {topo_m:6.1f} | "
+          f"{gn_sh:9.4f} | {err_gn:9.4f} | "
+          f"{ge_sh:9.4f} | {err_ge:9.4f} | "
+          f"{gd_sh:9.4f} | {err_gd:9.4f}")
+    records.append({"Lat": lats_1d[i], "Lon": lons_1d[j], "Topo_m": topo_m,
+                    "gN_SH": gn_sh, "err_gN": err_gn,
+                    "gE_SH": ge_sh, "err_gE": err_ge,
+                    "gD_SH": gd_sh, "err_gD": err_gd})
+print("=" * 100)
 df_errors = pd.DataFrame(records)
-df_errors.to_csv("Moon_gD_errors.csv", index=False, float_format="%.4f")
-print(f"\nTable data saved to: Moon_gD_errors.csv")
+csv_file_err = "Moon_gNED_errors.csv"
+df_errors.to_csv(csv_file_err, index=False, float_format="%.4f")
+print(f"\nTable data saved to: {csv_file_err}")
 # %% 
 # # ! Mapping: SH vs PH
 err_txt = ['A','B','C','D','E','F','G','H','I','J']

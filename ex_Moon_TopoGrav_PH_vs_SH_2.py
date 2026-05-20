@@ -19,35 +19,35 @@ print("=" * 80)
 # # ! Load Topo data
 #### * Topography
 lmax_shp = 359
-res_top = 15.0/60.0 # degree
-nc_file_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*res_top)}arcmin.nc'
-data_Topo = xr.open_dataset(nc_file_Topo)
-arr_Topo_moon = data_Topo['topo'].data
+res_topo = 15.0/60.0 # degree
+nc_topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*res_topo)}arcmin.nc'
+xr_topo = xr.open_dataset(nc_topo)
+arr_topo = xr_topo['topo'].data
 # %% 
 # # ! Load TGP data: SH vs PH
 #### * SH
 max_nmax = 7
-nc_file_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
-data_SH = xr.open_dataset(nc_file_SH)
-gn_SH = data_SH['gx'].data[::max_nmax, ::max_nmax]
-ge_SH = data_SH['gy'].data[::max_nmax, ::max_nmax]
-gd_SH = data_SH['gz'].data[::max_nmax, ::max_nmax]
+nc_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
+xr_SH = xr.open_dataset(nc_SH)
+gn_SH = xr_SH['gx'].data[::max_nmax, ::max_nmax]
+ge_SH = xr_SH['gy'].data[::max_nmax, ::max_nmax]
+gd_SH = xr_SH['gz'].data[::max_nmax, ::max_nmax]
 #### * PH
 out_res = 15.0/60.0 # degree
 in_res_1 = 15.0/60.0 # degree
 in_res_2 = 6.0/60.0 # degree
-nc_file_PH_1 = (f"output/moon_topo_gravity_in{int(in_res_1*60)}arcmin"
-                f"_out{int(out_res*60)}arcmin.nc")
-nc_file_PH_2 = (f"output/moon_topo_gravity_in{int(in_res_2*60)}arcmin"
-                f"_out{int(out_res*60)}arcmin.nc")
-data_PH_1 = xr.open_dataset(nc_file_PH_1)
-data_PH_2 = xr.open_dataset(nc_file_PH_2)
-gn_PH_1 = data_PH_1['gN'].data
-ge_PH_1 = data_PH_1['gE'].data
-gd_PH_1 = data_PH_1['gD'].data
-gn_PH_2 = data_PH_2['gN'].data
-ge_PH_2 = data_PH_2['gE'].data
-gd_PH_2 = data_PH_2['gD'].data
+nc_PH_1 = (f"output/moon_topo_gravity_in{int(in_res_1*60)}arcmin"
+           f"_out{int(out_res*60)}arcmin.nc")
+nc_PH_2 = (f"output/moon_topo_gravity_in{int(in_res_2*60)}arcmin"
+           f"_out{int(out_res*60)}arcmin.nc")
+xr_PH_1 = xr.open_dataset(nc_PH_1)
+xr_PH_2 = xr.open_dataset(nc_PH_2)
+gn_PH_1 = xr_PH_1['gN'].data
+ge_PH_1 = xr_PH_1['gE'].data
+gd_PH_1 = xr_PH_1['gD'].data
+gn_PH_2 = xr_PH_2['gN'].data
+ge_PH_2 = xr_PH_2['gE'].data
+gd_PH_2 = xr_PH_2['gD'].data
 #### * Diff = PH - SH
 d_gn_1, d_ge_1, d_gd_1 = gn_PH_1 - gn_SH, ge_PH_1 - ge_SH, gd_PH_1 - gd_SH
 d_gn_2, d_ge_2, d_gd_2 = gn_PH_2 - gn_SH, ge_PH_2 - ge_SH, gd_PH_2 - gd_SH
@@ -80,13 +80,13 @@ for typ in ['SH', 'PH (15 arcmin)', 'PH (6 arcmin)',
     print('=' * 80)
 # %% 
 # # ! Load Top-N largest |gD| errors
-df_errors = pd.read_csv('output/Moon_gD_errors.csv')
-err_lat = df_errors['Lat_deg'].values
-err_lon = df_errors['Lon_deg'].values
+df_errors = pd.read_csv('output/Moon_gNED_errors.csv')
+err_lat = df_errors['Lat'].values
+err_lon = df_errors['Lon'].values
 # %% 
 # # ! Mapping: SH vs PH
 err_txt = ['A','B','C','D','E','F','G','H','I','J']
-xr_Topo = pysh.SHGrid.from_array(arr_Topo_moon).to_xarray()
+xr_Topo = pysh.SHGrid.from_array(arr_topo).to_xarray()
 xr_gd_SH = pysh.SHGrid.from_array(gd_SH).to_xarray()
 xr_d_gd_1 = pysh.SHGrid.from_array(d_gd_1).to_xarray()
 xr_d_gd_2 = pysh.SHGrid.from_array(d_gd_2).to_xarray()

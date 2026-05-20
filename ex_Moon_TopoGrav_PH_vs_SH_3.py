@@ -5,6 +5,8 @@
 # # ! Setup
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pyshtools as pysh
 import pyvista as pv
@@ -37,13 +39,15 @@ def Shgrid2Mesh(shgrid):
     return mesh, pts_r
 # %% 
 # # ! Load Top-N largest |gD| errors
-df_errors = pd.read_csv('output/Moon_gD_errors.csv')
-err_lat = df_errors['Lat_deg'].values
-err_lon = df_errors['Lon_deg'].values
-err_lat_rad = np.deg2rad(err_lat)
-err_lon_rad = np.deg2rad(err_lon)
+df_errors = pd.read_csv('output/Moon_gNED_errors.csv')
+err_lat_rad = np.deg2rad(df_errors['Lat'].values)
+err_lon_rad = np.deg2rad(df_errors['Lon'].values)
+gN_SH = df_errors['gN_SH'].values
+gE_SH = df_errors['gE_SH'].values
 gD_SH = df_errors['gD_SH'].values
-df_SH_PHs = df_errors[['Lat_deg', 'Lon_deg', 'Topo_m', 'gD_SH']].copy()
+df_gN_SH_PHs = df_errors[['Lat', 'Lon', 'Topo_m', 'gN_SH']].copy()
+df_gE_SH_PHs = df_errors[['Lat', 'Lon', 'Topo_m', 'gE_SH']].copy()
+df_gD_SH_PHs = df_errors[['Lat', 'Lon', 'Topo_m', 'gD_SH']].copy()
 # %% 
 # # ! Computation of TGP: Polyhedron
 #### * Shape of Moon
@@ -64,13 +68,12 @@ zps = r_calc_km * np.sin(err_lat_rad)
 IN_RES = np.array([15.0, 10.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0]) / 60.0 # degree
 for in_res in IN_RES:
     nc_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
-    grd_topo_moon = pysh.SHGrid.from_netcdf(nc_Topo)
-    grd_shp_moon = grd_topo_moon + r_itfc_km
-    mesh_shp_moon, _ = Shgrid2Mesh(grd_shp_moon)
-    mesh_shp_moon
-    Verts = mesh_shp_moon.points
-    Faces = mesh_shp_moon.regular_faces
-    del mesh_shp_moon
+    grd_topo = pysh.SHGrid.from_netcdf(nc_Topo)
+    grd_shp = grd_topo + r_itfc_km
+    mesh_shp, _ = Shgrid2Mesh(grd_shp)
+    Verts = mesh_shp.points
+    Faces = mesh_shp.regular_faces
+    del mesh_shp
     P = np.column_stack((xps, yps, zps))
     t0 = time.time()
     vgt_PH = WerSch_numba_v2(P, Verts, Faces, rho0)
@@ -78,7 +81,7 @@ for in_res in IN_RES:
     print("Computation info: \n"
          f"Number of computation points: {P.shape[0]} \n"
          "Polyhedron geometry: \n"
-         f"Input resolution: {int(60*in_res):2d}-arcmin \n"
+         f"Input geographic resolution: {int(60*in_res):2d}-arcmin \n"
          f"Number of faces: {Faces.shape[0]} \n"
          f"Number of vertices: {Verts.shape[0]} \n"
          f"Time cost : {tc:8.3f} sec = {tc/60:.3f} min = {tc/(60*60):.3f} hr\n")
@@ -90,31 +93,41 @@ for in_res in IN_RES:
         rotate_vec_ten_ecef2ned(err_lon_rad, err_lat_rad, 
                                 gx, gy, gz, 
                                 Txx, Txy, Txz, Tyy, Tyz, Tzz)
-    df_SH_PHs[f'gD_PH_{int(60*in_res)}'] = np.round(gD, 4)
-    df_SH_PHs[f'e_gD_PH_{int(60*in_res)}'] = np.round(gD - gD_SH, 4)
+    df_gN_SH_PHs[f'e_gN_PH_{int(60*in_res)}'] = np.round(gN - gN_SH, 4)
+    df_gE_SH_PHs[f'e_gE_PH_{int(60*in_res)}'] = np.round(gE - gE_SH, 4)
+    df_gD_SH_PHs[f'e_gD_PH_{int(60*in_res)}'] = np.round(gD - gD_SH, 4)
 # %% 
 # # ! Plot error reduction vs. resolution
-RES_ARCMIN = sorted([int(60 * in_res) for in_res in IN_RES])
-error_cols = [f'e_gD_PH_{res}' for res in RES_ARCMIN]
-errors_abs = df_SH_PHs[error_cols].abs()
-nP = len(df_SH_PHs)
-plt.figure(figsize=(7, 5))
+#### * Absolute errors in mGal
+df_err_gN = df_gN_SH_PHs.iloc[:, 4:].abs()
+df_err_gE = df_gE_SH_PHs.iloc[:, 4:].abs()
+df_err_gD = df_gD_SH_PHs.iloc[:, 4:].abs()
+print('-' * 80)
+print("Absolute errors of (gN, gE, gD) in mGal for different resolutions:")
+print('-' * 80)
+for df in [df_err_gN, df_err_gE, df_err_gD]: print(df, '=' * 80, sep='\n')
+#### * Plotting
+nP = len(df_err_gD)
+fig, axes = plt.subplots(3, 1, figsize=(6, 8), sharex=True)
 colors = plt.cm.tab20(np.linspace(0, 1, min(nP, 20)))
 err_txt = ['A','B','C','D','E','F','G','H','I','J']
-for i in range(nP):
-    color = colors[i % len(colors)]
-    plt.plot(RES_ARCMIN[::-1], errors_abs.iloc[i].values[::-1], 
-             marker='o', ms=5, color=color, label=f'{err_txt[i]}')
-plt.xlabel('Geographic grid resolution (arcmin)')
-plt.ylabel('Absolute error in $g_z$ (mGal)')
-plt.xticks(RES_ARCMIN[::-1])
-plt.yticks([0, 1, 5, 10, 15, 20])
-plt.gca().invert_xaxis()
-plt.axhline(y=1, color='black', linestyle='--', linewidth=1.0, alpha=1.0)
-plt.grid(which='both', linestyle='--', alpha=0.8)
-plt.legend(loc='upper right', fontsize='small', ncol=2)
-plt.tight_layout()
-plt.show()
+for df, ax, comp in zip([df_err_gN, df_err_gE, df_err_gD], axes, 
+                        ['g_x', 'g_y', 'g_z']):
+    for i in range(nP):
+        color = colors[i % len(colors)]
+        ax.plot(60 * IN_RES, df.iloc[i].values,
+                marker='o', ms=5, color=color, label=f'{err_txt[i]}')
+    ax.set_ylabel(f'Abs error in ${comp}$ (mGal)')
+    ax.set_xticks(60 * IN_RES)
+    ax.axhline(y=1, color='black', linestyle='--', linewidth=1.0, alpha=1.0)
+    ax.grid(which='both', linestyle='--', alpha=0.8)
+    ax.invert_xaxis()
+    ax.legend(loc='upper right', fontsize='small', ncol=2)
+axes[-1].set_xlabel('Geographic grid resolution (arcmin)')
+plt.tight_layout(pad=2.5)
+plt.savefig("Moon_TopoGxyz_PH_vs_SH_3.png", 
+            dpi=300, bbox_inches='tight')
+# plt.show()
 # %% 
 # # ! End time
 print("=" * 80)
