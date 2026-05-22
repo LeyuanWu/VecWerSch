@@ -1,0 +1,32 @@
+% custom.cls - A minimal parser-friendly class file
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesClass{seg}[2025/07/24 SEG]
+
+% Load the base article class
+\LoadClass{article}
+
+% Required packages
+\RequirePackage{graphicx}     
+\RequirePackage{amsmath}       
+\RequirePackage{amssymb}       
+\RequirePackage{amsfonts}      
+\RequirePackage{hyperref}      
+\RequirePackage{array}         
+\RequirePackage{multicol}      
+% Usage of below packages are not recommended
+% \RequirePackage{tikz}          
+% \RequirePackage{booktabs}      
+% \RequirePackage{physics}       
+% \RequirePackage{pgfplots}      
+
+% --- Custom Command Definitions ---
+
+% A new command for a variable
+\newcommand{\Var}[1]{\texttt{#1}}
+
+% renewcommand for default float placement
+\renewcommand{\figurename}{Fig.}
+\renewcommand{\thesection}{\arabic{section}}
+
+\endinput
+%% End of file seg.cls

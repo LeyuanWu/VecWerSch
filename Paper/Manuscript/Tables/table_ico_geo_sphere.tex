@@ -1,0 +1,39 @@
+\begin{table}[h!]
+\centering
+\setlength{\tabcolsep}{4.8pt}
+\caption{Comparison of recursive icosahedral subdivision and regular triangulated geographic grids for approximating an ideal unit sphere. For each refinement level $n$ (with corresponding numbers of vertices $N_V$ and triangular faces $N_T$), the table reports relative surface area and volume discretization errors ($\epsilon_{\mathrm{area}}$, $\epsilon_{\mathrm{vol}}$) and the shortest and longest edge lengths ($\psi_{\mathrm{min}}$, $\psi_{\mathrm{max}}$), expressed as spherical distances in arcminutes, across levels $n = 0$ to $12$.}
+\label{tab:ico_geo_sphere}
+\begin{tabular}{rrrcccccccc}
+\toprule
+\multirow{2}{*}{$n$} &
+\multirow{2}{*}{$N_{V}$} &
+\multirow{2}{*}{$N_{T}$} &
+\multicolumn{4}{c}{\textbf{Icosahedron}} &
+\multicolumn{4}{c}{\textbf{Geographic}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+& & &
+$\epsilon_{\mathrm{area}}^{\mathrm{ico}}$ &
+$\epsilon_{\mathrm{vol}}^{\mathrm{ico}}$ &
+$\psi_{\mathrm{min}}^{\mathrm{ico}}$ &
+$\psi_{\mathrm{max}}^{\mathrm{ico}}$ &
+$\epsilon_{\mathrm{area}}^{\mathrm{geo}}$ &
+$\epsilon_{\mathrm{vol}}^{\mathrm{geo}}$ &
+$\psi_{\mathrm{min}}^{\mathrm{geo}}$ &
+$\psi_{\mathrm{max}}^{\mathrm{geo}}$ \\
+\midrule
+0   & 12          & 20         & 2.4e-01 & 4.0e-01 & 3.8e+03 & 3.8e+03 & 2.5e-01 & 4.3e-01 & 3.6e+03 & 5.5e+03 \\
+1   & 42          & 80         & 7.2e-02 & 1.3e-01 & 1.9e+03 & 2.2e+03 & 8.0e-02 & 1.5e-01 & 1.3e+03 & 3.0e+03 \\
+2   & 162         & 320        & 1.9e-02 & 3.4e-02 & 8.7e+02 & 1.1e+03 & 2.3e-02 & 4.6e-02 & 3.7e+02 & 1.6e+03 \\
+3   & 642         & 1280       & 4.8e-03 & 8.6e-03 & 4.1e+02 & 5.7e+02 & 6.3e-03 & 1.3e-02 & 9.9e+01 & 8.3e+02 \\
+4   & 2562        & 5120       & 1.2e-03 & 2.2e-03 & 2.0e+02 & 2.8e+02 & 1.7e-03 & 3.3e-03 & 2.6e+01 & 4.2e+02 \\
+5   & 10242       & 20480      & 3.0e-04 & 5.4e-04 & 9.8e+01 & 1.4e+02 & 4.2e-04 & 8.4e-04 & 6.5e+00 & 2.1e+02 \\
+6   & 40962       & 81920      & 7.5e-05 & 1.4e-04 & 4.8e+01 & 7.1e+01 & 1.1e-04 & 2.1e-04 & 1.6e+00 & 1.1e+02 \\
+7   & 163842      & 327680     & 1.9e-05 & 3.4e-05 & 2.4e+01 & 3.6e+01 & 2.7e-05 & 5.3e-05 & 4.1e-01 & 5.4e+01 \\
+8   & 655362      & 1310720    & 4.7e-06 & 8.5e-06 & 1.2e+01 & 1.8e+01 & 6.7e-06 & 1.3e-05 & 1.0e-01 & 2.7e+01 \\
+9   & 2621442     & 5242880    & 1.2e-06 & 2.1e-06 & 6.0e+00 & 8.9e+00 & 1.7e-06 & 3.4e-06 & 2.6e-02 & 1.4e+01 \\
+10  & 10485762    & 20971520   & 2.9e-07 & 5.3e-07 & 3.0e+00 & 4.4e+00 & 4.2e-07 & 8.4e-07 & 6.5e-03 & 6.8e+00 \\
+11  & 41943042    & 83886080   & 6.3e-08 & 1.3e-07 & 1.5e+00 & 2.2e+00 & 1.0e-07 & 2.1e-07 & 1.6e-03 & 3.4e+00 \\
+12  & 167772162   & 335544320  & 2.5e-08 & 3.3e-08 & 7.5e-01 & 1.1e+00 & 2.2e-08 & 5.2e-08 & 4.0e-04 & 1.7e+00 \\
+\bottomrule
+\end{tabular}
+\end{table}
