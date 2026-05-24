@@ -25,6 +25,9 @@ D'Urso, M.~G., and S. Trotta,  2017, Gravity {{Anomaly}} of {{Polyhedral Bodies 
 \bibitem[Gaskell, 2020]{Gaskell2020a}
 Gaskell, R.,  2020, Gaskell {{Eros Shape Model Bundle V1}}.0.
 
+\bibitem[Greengard and Lee, 2004]{Greengard2004SIAMRev.}
+Greengard, L., and J.-Y. Lee,  2004, Accelerating the {{Nonuniform Fast Fourier Transform}}: SIAM Review, {\bfseries 46}, 443--454.
+
 \bibitem[Hansen and Wang, 1988]{Hansen1988Geophysics}
 Hansen, R.~O., and X. Wang,  1988, Simplified frequency-domain expressions for potential fields at arbitrary three-dimensional bodies: Geophysics, {\bfseries 53}, 365--374.
 
@@ -51,6 +54,9 @@ Hu, X., and C. Jekeli,  2015, A numerical comparison of spherical, spheroidal an
 
 \bibitem[Jamet and Tsoulis, 2020]{Jamet2020JGeod}
 Jamet, O., and D. Tsoulis,  2020, A line integral approach for the computation of the potential harmonic coefficients of a constant density polyhedron: Journal of Geodesy, {\bfseries 94}, 30.
+
+\bibitem[Keiner et~al., 2009]{Keiner2009ACMTrans.Math.Softw.}
+Keiner, J., S. Kunis, and D. Potts,  2009, Using {{NFFT}} 3---{{A Software Library}} for {{Various Nonequispaced Fast Fourier Transforms}}: ACM Transactions on Mathematical Software, {\bfseries 36}, 1--30.
 
 \bibitem[Liu et~al., 2025]{Liu2025SurvGeophys}
 Liu, C., Z. Wang, F. Li, Y. Gao, and Y. Xiao,  2025, Efficient {{Solutions}} for {{Forward Modeling}} of the {{Earth}}'s {{Topographic Potential}} in {{Spheroidal Harmonics}}: Surveys in Geophysics, {\bfseries 46}, 169--196.
@@ -124,8 +130,11 @@ Wieczorek, M.~A., and M. Meschede,  2018, {{SHTools}}: {{Tools}} for {{Working}}
 \bibitem[Wieczorek and Phillips, 1998]{Wieczorek1998J.Geophys.Res.}
 Wieczorek, M.~A., and R.~J. Phillips,  1998, Potential anomalies on a sphere: {{Applications}} to the thickness of the lunar crust: Journal of Geophysical Research: Planets, {\bfseries 103}, 1715--1724.
 
+\bibitem[Wu, 2016]{Wu2016Geophys.J.Int.}
+Wu, L.,  2016, Efficient modelling of gravity effects due to topographic masses using the {{Gauss}}--{{FFT}} method: Geophysical Journal International, {\bfseries 205}, 160--178.
+
 \bibitem[Wu, 2019]{Wu2019JGeod}
-Wu, L.,  2019, Fourier-domain modeling of gravity effects caused by polyhedral bodies: Journal of Geodesy, {\bfseries 93}, 635--653.
+--------, 2019, Fourier-domain modeling of gravity effects caused by polyhedral bodies: Journal of Geodesy, {\bfseries 93}, 635--653.
 
 \bibitem[Wu, 2021]{Wu2021J.Geophys.Res.SolidEarth}
 --------, 2021, Modified {{Parker}}'s {{Method}} for {{Gravitational Forward}} and {{Inverse Modeling Using General Polyhedral Models}}: Journal of Geophysical Research: Solid Earth, {\bfseries 126}, e2021JB022553.
@@ -133,10 +142,16 @@ Wu, L.,  2019, Fourier-domain modeling of gravity effects caused by polyhedral b
 \bibitem[Wu et~al., 2019]{Wu2019JGeoda}
 Wu, L., L. Chen, B. Wu, B. Cheng, and Q. Lin,  2019, Improved {{Fourier}} modeling of gravity fields caused by polyhedral bodies: With applications to asteroid {{Bennu}} and comet {{67P}}/{{Churyumov}}--{{Gerasimenko}}: Journal of Geodesy, {\bfseries 93}, 1963--1984.
 
+\bibitem[Wu and Tian, 2014]{Wu2014Geophysics}
+Wu, L., and G. Tian,  2014, High-precision {{Fourier}} forward modeling of potential fields: Geophysics, {\bfseries 79}, G59--G68.
+
 \bibitem[Wu, 1983]{1983WuXZ_CJG}
 Wu, X.,  Mon Apr 25 00:00:00 CST 1983, {The computation of spectrum of potential field due to 3-d arbitrary bodies with physical parameters varying with depth}: Chinese Journal of Geophysics, {\bfseries 26}, 177--187.
 
 \bibitem[Zhang and Chen, 2018]{Zhang2018JGeod}
 Zhang, Y., and C. Chen,  2018, Forward calculation of gravity and its gradient using polyhedral representation of density interfaces: An application of spherical or ellipsoidal topographic gravity effect: Journal of Geodesy, {\bfseries 92}, 205--218.
+
+\bibitem[Zhou et~al., 2020]{Zhou2020Geophysics}
+Zhou, Y., L. Wu, B. Wu, B. Cheng, H. Wang, L. Chen, S. Gao, and Q. Lin,  2020, Fourier-domain modeling of gravity effects caused by a vertical polyhedral prism, with application to a water reservoir storage process: Geophysics, {\bfseries 85}, G115--G127.
 
 \end{thebibliography}
