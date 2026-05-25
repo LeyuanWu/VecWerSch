@@ -61,6 +61,9 @@ Keiner, J., S. Kunis, and D. Potts,  2009, Using {{NFFT}} 3---{{A Software Libra
 \bibitem[Liu et~al., 2025]{Liu2025SurvGeophys}
 Liu, C., Z. Wang, F. Li, Y. Gao, and Y. Xiao,  2025, Efficient {{Solutions}} for {{Forward Modeling}} of the {{Earth}}'s {{Topographic Potential}} in {{Spheroidal Harmonics}}: Surveys in Geophysics, {\bfseries 46}, 169--196.
 
+\bibitem[Martin and Schaub, 2022]{Martin2022CelestMechDynAstron}
+Martin, J., and H. Schaub,  2022, Physics-informed neural networks for gravity field modeling of small bodies: Celestial Mechanics and Dynamical Astronomy, {\bfseries 134}, 46.
+
 \bibitem[Okabe, 1979]{Okabe1979Geophysics}
 Okabe, M.,  1979, Analytical expressions for gravity anomalies due to homogeneous polyhedral bodies and translations into magnetic anomalies: Geophysics, {\bfseries 44}, 730--741.
 

@@ -13,8 +13,8 @@
 
 \author{%
   Leyuan Wu$^{1}$ \and
-  Chong Zhang$^{2}$\thanks{Corresponding author: zhangchong@cags.ac.cn} \and
-  Longwei Chen$^{3}$\thanks{Corresponding author: longweichen\_glut@glut.edu.cn}
+  Chong Zhang$^{2,3}$\thanks{Corresponding author: zchong\_chn@163.com} \and
+  Longwei Chen$^{4}$\thanks{Corresponding author: longweichen\_glut@glut.edu.cn}
 }
 
 \begin{document}
@@ -26,14 +26,15 @@
 \begin{center}
     \footnotesize
     $^{1}$School of Physics and Optical Engineering, Zhejiang University of Technology, Hangzhou 310058, China \\
-    $^{2}$China Deep Exploration Center (SinoProbe Center), Chinese Academy of Geological Sciences, Beijing 100037, China \\
-    $^{3}$ Guangxi Key Laboratory of Exploration For Hidden Metallic Ore Deposits, College of Earth Sciences, Guilin University of Technology, Guilin 541006, China
+    $^{2}$State Key Laboratory of Deep Earth and Mineral Exploration, Chinese Academy of Geological Sciences, Beijing, 100037, China  \\
+    $^{3}$SinoProbe Laboratory (Laboratory of Deep Earth Science and Exploration Technology Ministry of Natural Resources), Chinese Academy of Geological Sciences, Beijing, 100037, China \\
+    $^{4}$ Guangxi Key Laboratory of Exploration For Hidden Metallic Ore Deposits, College of Earth Sciences, Guilin University of Technology, Guilin 541006, China
 \end{center}
 
 \newpage
 
 \begin{abstract}
-
+We present an open-source Python implementation for polyhedral full-tensor gravity forward modelling based on a numerically stable analytical formulation. The code leverages Numba just-in-time compilation to achieve high performance while retaining the simplicity and flexibility of Python. Two algorithmic variants are provided: one precomputes face and edge geometry for optimal speed with moderate mesh sizes, and another computes geometric quantities on-the-fly to minimize memory usage for very large models. The implementation supports computation of the gravitational potential, vector, and full gradient tensor, and is validated through multiple benchmark tests—including idealized spheres, asteroid shape models, and lunar topography—demonstrating excellent accuracy, robustness, and convergence across diverse scenarios.
 \end{abstract}
 
 \section{Introduction}
@@ -50,7 +51,7 @@ Fourier-domain methods based on Cartesian Fast Fourier Transform (FFT) algorithm
 
 Accompanying these theoretical advances, several open-source implementations have become available. These include a FORTRAN implementation by \citet{Tsoulis2012Geophysics}, MATLAB routines introduced by \citet{Singh2001Geophysics} and later extended by \citet{Saraswati2019JGeod}, and a C\texttt{++} library (\url{https://github.com/zhong-yy/GraPly}) that implements the algorithms of \citet{Ren2017SurvGeophys,Ren2018GEOPHYSICS,Ren2020SurvGeophys,Ren2022GeophysicalResearchLetters}. However, practical use of existing implementations has revealed persistent numerical instabilities—not only when evaluation points lie on or near polyhedral faces or vertices, but occasionally even at seemingly benign locations (these include application of \citet{Tsoulis2012Geophysics} FORTRAN code in \citet{Wu2016Geophys.J.Int.}, \citet{Ren2018GEOPHYSICS} C\texttt{++} code in \citet{Zhou2020Geophysics}, and \citet{Saraswati2019JGeod} MATLAB code in modelling Bennu asteroid, personal communication). These observations underscore the ongoing need for a robust implementation that guarantees consistent accuracy and reliability across all configurations.
 
-In this paper, we provide an open-source Python implementation for polyhedral gravity forward modelling based on the method introduced by \citet{Werner1996CelestialMechDynAstr}, which we find to be numerically stable, concise, and elegant. Critically, our implementation leverages Numba just-in-time (JIT) compilation to achieve performance comparable to compiled languages while maintaining Python's accessibility and ease of use. Two algorithmic variants are developed: one constructs an edge list from the face--vertex geometry and precomputes face and edge normals in memory to accelerate computations for meshes up to $N_T \lesssim 10^8$ triangular facets; the other computes all geometric quantities on-the-fly, requiring significantly less memory and thus better suited for very large polyhedral meshes with $N_T \gg 10^8$ facets. The Numba acceleration enables efficient parallel processing across observation points and geometric elements, making our code suitable for both local-scale problems and planetary-scale applications with millions to hundreds of millions of mesh elements. Our implementation aims to serve both as a practical tool for geophysical and planetary applications and as a reliable reference for validating emerging spectral or data-driven methods.
+In this paper, we provide an open-source Python implementation for polyhedral gravity forward modelling based on the method introduced by \citet{Werner1996CelestialMechDynAstr}, which we find to be numerically stable, concise, and elegant. Critically, our implementation leverages Numba just-in-time (JIT) compilation to achieve performance comparable to compiled languages while maintaining Python's accessibility and ease of use. Two algorithmic variants are developed: one constructs an edge list from the face--vertex geometry and precomputes face and edge normals in memory to accelerate computations for meshes up to $N_T \lesssim 10^8$ triangular facets; the other computes all geometric quantities on-the-fly, requiring significantly less memory and thus better suited for very large polyhedral meshes with $N_T \gg 10^8$ facets. The Numba acceleration enables efficient parallel processing across observation points and geometric elements, making our code suitable for both local-scale problems and planetary-scale applications with millions to hundreds of millions of mesh elements. Our implementation aims to serve both as a practical tool for geophysical and planetary applications and as a reliable reference for validating emerging spectral or data-driven \citep{Martin2022CelestMechDynAstron} methods.
 
 
 \section{Methodology}
@@ -253,9 +254,17 @@ Figure~\ref{fig:Moon_TopoGz_PH_vs_SH_2} visualizes the global distribution of th
 To quantify convergence, we evaluate the gravity field at the ten sites labelled A-J in Figure~\ref{fig:Moon_TopoGz_PH_vs_SH_2}, which exhibit the largest $|g_z|$ discrepancies in the $15$-arcmin PH-SH comparison. Figure~\ref{fig:Moon_TopoGxyz_PH_vs_SH_3} shows the absolute errors in all three gravity components ($g_x$, $g_y$, $g_z$) as a function of polyhedral mesh resolution, ranging from $15$ to $1$ arcminute. Since the input lunar shape is a continuous spherical harmonic model, its discretization into a polyhedral mesh introduces resolution-dependent geometric errors; as the mesh is refined, these errors generally diminish. The gravity errors decrease monotonically with increasing resolution and fall below $1$~mGal (dashed line) for resolutions finer than $\sim\!5$ arcminutes in most cases. However, at the finest resolution (1 arcminute), the error reduction plateaus or slightly increases for a few locations—most notably point A—suggesting that the SH reference solution, truncated at degree $n_{\text{max}} = 7$, may be approaching its intrinsic accuracy limit, which is on the order of $1$~mGal at certain sites. These computations employ algorithm \texttt{WerSch\_numba\_v2}, which is optimized for large-mesh, few-observation scenarios. Overall, this behaviour confirms the numerical consistency of our polyhedral implementation and its convergence toward the SH solution as the surface approximation improves.
 
 \section{Conclusion}
+This work introduces a reliable and efficient Python-based tool for polyhedral gravity forward modelling that addresses long-standing numerical stability issues observed in several existing implementations. Built upon a well-established analytical framework, our code accurately computes the full gravity tensor—potential, vector, and gradient—for arbitrarily complex polyhedral bodies with constant density. The use of Numba acceleration ensures near-compiled performance, making the tool suitable for both small-scale studies and large planetary applications involving hundreds of millions of triangular facets.
+
+Two distinct algorithmic strategies are implemented to accommodate different computational constraints. The first variant, which precomputes and stores all necessary geometric data (face normals, edge normals, and adjacency information), delivers maximum computational efficiency and is ideal for repeated evaluations or moderately sized meshes. The second variant avoids storing edge-level data and instead recomputes geometric quantities during evaluation, drastically reducing memory consumption at the cost of a modest increase in runtime. This makes it particularly well-suited for extreme-scale problems where memory becomes the limiting factor.
+
+Through rigorous validation—including comparisons with analytical solutions for a homogeneous sphere, consistency checks using Green`s third identity on the EROS asteroid shape model, and cross-verification against spherical harmonic methods for lunar topographic gravity—we demonstrate that the dominant source of error in our results stems from geometric discretization rather than numerical inaccuracies in the field computation itself. Errors decrease systematically with mesh refinement, confirming both the correctness of the underlying mathematics and the robustness of the implementation.
+
+The software is fully open-source and designed for ease of use, integration, and extension. It provides a trustworthy reference solution for validating new forward modelling techniques—whether spectral, data-driven, or hybrid—and supports a wide range of applications in geophysics and planetary science. Future extensions could include support for variable density distributions and magnetic forward modelling, building naturally on the current architecture.
 
 \section{Acknowledgments}
-This study was funded by the National Natural Science Foundation of China (Grant No. 42474184, 42374172, 42374173). This work utilized several open-source Python packages, including PyVista \citep{Sullivan2019JOSS}, PyGMT \citep{Wessel2019GeochemGeophysGeosyst}, and pyshtools \citep{Wieczorek2018GeochemGeophysGeosyst}, for data processing and visualization.
+This study was funded by the National Natural Science Foundation of China (Grant No. 42474184, 42374172, 42374173), the Chinese Academy of Geological Sciences Basal Research Fund (No. JKYDM2025208), the Key Laboratory of Marine Mineral Resources of the Ministry of Natural Resources (No. KLMMR-2024-G08). This work utilized several open-source Python packages, including PyVista \citep{Sullivan2019JOSS}, PyGMT \citep{Wessel2019GeochemGeophysGeosyst}, and pyshtools \citep{Wieczorek2018GeochemGeophysGeosyst}, for data processing and visualization.
+
 
 \section{Data and Materials Availability}
 All related Python code and Jupyter notebooks to reproduce all the numerical results in this work can be found at figshare: \url{https://figshare.com/}.
