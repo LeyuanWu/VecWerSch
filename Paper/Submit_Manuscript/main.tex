@@ -267,7 +267,7 @@ Through rigorous validation—including comparisons with analytical solutions fo
 The software is fully open-source and designed for ease of use, integration, and extension. It provides a trustworthy reference solution for validating new forward modelling techniques—whether spectral, data-driven, or hybrid—and supports a wide range of applications in geophysics and planetary science. Future extensions could include support for variable density distributions and magnetic forward modelling, building naturally on the current architecture.
 
 \section{Acknowledgments}
-This study was funded by the National Natural Science Foundation of China (Grant No. 42474184, 42374172, 42374173), Natural Science Basic Research Program of Shaanxi (Program No. 2024JC-YBMS-207), the Chinese Academy of Geological Sciences Basal Research Fund (No. JKYDM2025208). This work utilized several open-source Python packages, including PyVista \citep{Sullivan2019JOSS}, PyGMT \citep{Wessel2019GeochemGeophysGeosyst}, and pyshtools \citep{Wieczorek2018GeochemGeophysGeosyst}, for data processing and visualization.
+This study was funded by the National Natural Science Foundation of China (Grant No. 42474184, 42374172, 42374173), Natural Science Basic Research Program of Shaanxi (Program No. 2024JC-YBMS-207). This work utilized several open-source Python packages, including PyVista \citep{Sullivan2019JOSS}, PyGMT \citep{Wessel2019GeochemGeophysGeosyst}, and pyshtools \citep{Wieczorek2018GeochemGeophysGeosyst}, for data processing and visualization.
 
 
 \section{Data and Materials Availability}
@@ -277,7 +277,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/Benchmark_WerSch_v1v2_nsub8.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_1.png}
     \caption{Benchmark of \texttt{WerSch\_numba\_v1} and \texttt{WerSch\_numba\_v2}. The source body is a unit sphere ($R = 1.0$ km) with constant density $\rho = 2670~\mathrm{kg/m^3}$, discretized by recursive icosahedral subdivision, yielding $N_T = 20 \times 4^{j}$ triangular faces for refinement level $j = 0, \dots, 8$. Observation points are placed on a concentric sphere of radius $r_{\mathrm{obs}} = 1.1$ km using Fibonacci sphere sampling, with $N_P = 20 \times 4^{i}$ points for level $i = 0, \dots, 8$. Shown from top-left to bottom-right: (a) runtime of Version~1 (sec), (b) runtime of Version~2, (c) runtime ratio $t_2/t_1$, and (d) maximum absolute difference in the computed vertical gravity component $g_z$ (mGal) between the two versions.}
     \label{fig:Benchmark}
 \end{figure}
@@ -285,7 +285,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/Sphere_Polyhedron.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_2.png}
     \caption{Two common strategies for polyhedral approximation of a unit sphere: (top row) recursive subdivision of an icosahedron and (bottom row) triangulated regular geographic grid. Meshes at refinement levels $n = 2, 3, 4$ are shown, colored by the relative area of each triangular face (\% of total surface area). The icosahedral meshes exhibit more uniform element sizes, while the geographic grids show pronounced polar clustering, leading to high variability in triangle areas-particularly near the poles.}
     \label{fig:Sphere_Polyhedron}
 \end{figure}
@@ -293,7 +293,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/IcoGeoSphere_Global_nsub12_nobs5000.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_3.png}
     \caption{Convergence of polyhedral gravity solutions toward the analytical field of a homogeneous Earth-sized sphere. Relative $L_2$ errors in selected field components (potential $V$, down-component $g_D$, and diagonal gradients $T_{NN}$, $T_{DD}$) are shown as functions of mesh resolution ($N_T =$ number of triangular faces). Panels correspond to different observation altitudes: (a)~0.001~km, (b)~0.1~km, (c)~1~km, and (d)~10~km. Solid lines with open circles represent icosahedral discretizations; dashed lines with open squares denote geographic (longitude--latitude) grids. Both methods converge with increasing resolution, with errors decreasing more rapidly at higher altitudes. The agreement between the two formulations confirms that discrepancies are due to geometric approximation rather than numerical computation.}
     \label{fig:IcoGeoSphere_Global}
 \end{figure}
@@ -301,7 +301,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/EROS_Geometry.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_4.png}
     \caption{Linear refinement of the EROS shape model and surface gravity fields. Top-left: original mesh with face centers (red). Top-right: refined mesh showing new interior edges (blue) and new face centers (yellow). Bottom-left: gravitational potential $V$ on refined surface. Bottom-right: normal gravity component $g_n$.}
     \label{fig:EROS_Geometry}
 \end{figure}
@@ -309,7 +309,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/EROS_ErrorMaps.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_5.png}
     \caption{Pointwise relative errors using Green's third identity approximated gravitational potential on a sphere of radius 17.8 km, shown for four mesh refinement levels. Errors are initially concentrated near the elongated tips of EROS (along $\pm x$) where the surface lies closest to the evaluation sphere, and this spatial pattern persists even at the finest resolution, albeit with dramatically reduced magnitude.}
     \label{fig:EROS_ErrorMaps}
 \end{figure}
@@ -317,7 +317,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/EROS_Convergence.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_6.png}
     \caption{Convergence of Green's third identity approximation for EROS's exterior gravitational potential. Root Mean Square (RMS) relative error ($\varepsilon_{rms}$, solid lines) and maximum relative error ($\varepsilon_{max}$, dashed lines) in gravitational potential decrease with mesh refinement across three evaluation radii. Errors diminish by over three orders of magnitude as the number of faces increases from $1.7 \times 10^3$ (level 0) to $7.0 \times 10^6$ (level 6).}
     \label{fig:EROS_Convergence}
 \end{figure}
@@ -325,7 +325,7 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.95\textwidth]{Figs/Moon_TopoGz_PH_vs_SH_2.png}
+    \includegraphics[width=0.95\textwidth]{Figs/figure_7.png}
     \caption{Global comparison of lunar gravity derived from spherical harmonics (SH) and polyhedral (PH) methods. Top left: Lunar topography with white triangles marking the locations of the largest $g_z$ errors in the $15$-arcmin PH-SH difference; triangle sites are separated by at least $1000$~km. Top right: Downward gravity component $g_z^{\mathrm{sh}}$ from the SH model. Bottom left: Difference $g_z^{\mathrm{ph}} - g_z^{\mathrm{sh}}$ for the $15$-arcmin PH model. Bottom right: Same difference for the $6$-arcmin PH model.}
     \label{fig:Moon_TopoGz_PH_vs_SH_2}
 \end{figure}
@@ -333,16 +333,88 @@ All related Python code and Jupyter notebooks to reproduce the numerical results
 \clearpage
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\textwidth]{Figs/Moon_TopoGxyz_PH_vs_SH_3.png}
+    \includegraphics[width=0.75\textwidth]{Figs/figure_8.png}
     \caption{Absolute errors in the gravity components ($g_x$, $g_y$, $g_z$) at the ten labelled sites (A-J) identified in Figure~\ref{fig:Moon_TopoGz_PH_vs_SH_2}, plotted against polyhedral mesh resolution from $15$ to $1$ arcminute. Errors are relative to the spherical harmonic (SH) reference solution. The dashed horizontal line indicates the $1$~mGal level.}
     \label{fig:Moon_TopoGxyz_PH_vs_SH_3}
 \end{figure}
 
 \clearpage
-\input{Tables/table_ico_geo_sphere}
+\begin{table}[h!]
+\centering
+\setlength{\tabcolsep}{4.8pt}
+\caption{Comparison of recursive icosahedral subdivision and triangulated regular geographic grids for approximating an ideal unit sphere. For each refinement level $n$ (with corresponding numbers of vertices $N_V$ and triangular faces $N_T$), the table reports relative surface area and volume discretization errors ($\epsilon_{\mathrm{area}}$, $\epsilon_{\mathrm{vol}}$) and the shortest and longest edge lengths ($\psi_{\mathrm{min}}$, $\psi_{\mathrm{max}}$), expressed as spherical distances in arcminutes, across levels $n = 0$ to $12$.}
+\label{tab:ico_geo_sphere}
+\begin{tabular}{rrrcccccccc}
+\toprule
+\multirow{2}{*}{$n$} &
+\multirow{2}{*}{$N_{V}$} &
+\multirow{2}{*}{$N_{T}$} &
+\multicolumn{4}{c}{\textbf{Icosahedron}} &
+\multicolumn{4}{c}{\textbf{Geographic}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+& & &
+$\epsilon_{\mathrm{area}}^{\mathrm{ico}}$ &
+$\epsilon_{\mathrm{vol}}^{\mathrm{ico}}$ &
+$\psi_{\mathrm{min}}^{\mathrm{ico}}$ &
+$\psi_{\mathrm{max}}^{\mathrm{ico}}$ &
+$\epsilon_{\mathrm{area}}^{\mathrm{geo}}$ &
+$\epsilon_{\mathrm{vol}}^{\mathrm{geo}}$ &
+$\psi_{\mathrm{min}}^{\mathrm{geo}}$ &
+$\psi_{\mathrm{max}}^{\mathrm{geo}}$ \\
+\midrule
+0   & 12          & 20         & 2.4e-01 & 4.0e-01 & 3.8e+03 & 3.8e+03 & 2.5e-01 & 4.3e-01 & 3.6e+03 & 5.5e+03 \\
+1   & 42          & 80         & 7.2e-02 & 1.3e-01 & 1.9e+03 & 2.2e+03 & 8.0e-02 & 1.5e-01 & 1.3e+03 & 3.0e+03 \\
+2   & 162         & 320        & 1.9e-02 & 3.4e-02 & 8.7e+02 & 1.1e+03 & 2.3e-02 & 4.6e-02 & 3.7e+02 & 1.6e+03 \\
+3   & 642         & 1280       & 4.8e-03 & 8.6e-03 & 4.1e+02 & 5.7e+02 & 6.3e-03 & 1.3e-02 & 9.9e+01 & 8.3e+02 \\
+4   & 2562        & 5120       & 1.2e-03 & 2.2e-03 & 2.0e+02 & 2.8e+02 & 1.7e-03 & 3.3e-03 & 2.6e+01 & 4.2e+02 \\
+5   & 10242       & 20480      & 3.0e-04 & 5.4e-04 & 9.8e+01 & 1.4e+02 & 4.2e-04 & 8.4e-04 & 6.5e+00 & 2.1e+02 \\
+6   & 40962       & 81920      & 7.5e-05 & 1.4e-04 & 4.8e+01 & 7.1e+01 & 1.1e-04 & 2.1e-04 & 1.6e+00 & 1.1e+02 \\
+7   & 163842      & 327680     & 1.9e-05 & 3.4e-05 & 2.4e+01 & 3.6e+01 & 2.7e-05 & 5.3e-05 & 4.1e-01 & 5.4e+01 \\
+8   & 655362      & 1310720    & 4.7e-06 & 8.5e-06 & 1.2e+01 & 1.8e+01 & 6.7e-06 & 1.3e-05 & 1.0e-01 & 2.7e+01 \\
+9   & 2621442     & 5242880    & 1.2e-06 & 2.1e-06 & 6.0e+00 & 8.9e+00 & 1.7e-06 & 3.4e-06 & 2.6e-02 & 1.4e+01 \\
+10  & 10485762    & 20971520   & 2.9e-07 & 5.3e-07 & 3.0e+00 & 4.4e+00 & 4.2e-07 & 8.4e-07 & 6.5e-03 & 6.8e+00 \\
+11  & 41943042    & 83886080   & 6.3e-08 & 1.3e-07 & 1.5e+00 & 2.2e+00 & 1.0e-07 & 2.1e-07 & 1.6e-03 & 3.4e+00 \\
+12  & 167772162   & 335544320  & 2.5e-08 & 3.3e-08 & 7.5e-01 & 1.1e+00 & 2.2e-08 & 5.2e-08 & 4.0e-04 & 1.7e+00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \clearpage
-\input{Tables/table_Moon_SH_PH_comparison}
+\begin{table}[h!]
+\centering
+\caption{Statistical comparison of lunar topographic gravity vector components (in mGal) between spherical harmonic (SH) and polyhedral (PH) methods at $15^{\prime}$ and $6^{\prime}$ mesh resolutions. The components $g_x$, $g_y$, and $g_z$ represent the northward, eastward, and downward directions, respectively, in a local north-oriented coordinate system. Differences are defined as PH~$-$~SH.}
+\label{tab:Moon_SH_PH_comparison}
+\begin{tabular}{lcccccc}
+\toprule
+Method & Component & min & max & mean & std \\
+\midrule
+\multirow{3}{*}{SH} 
+   & $g_x$ & $-488.8082$ & $933.4147$ & $10.3820$ & $154.3514$ \\
+   & $g_y$ & $-551.9941$ & $606.5575$ & $0.0197$  & $150.2317$ \\
+   & $g_z$ & $-721.8590$ & $1189.4579$ & $-35.0952$ & $246.4136$ \\
+\midrule
+\multirow{3}{*}{PH ($15^{\prime}$)} 
+   & $g_x$ & $-486.9639$ & $926.2217$ & $10.3856$ & $154.2915$ \\
+   & $g_y$ & $-548.6204$ & $605.3110$ & $0.0197$  & $150.2471$ \\
+   & $g_z$ & $-721.7818$ & $1182.6341$ & $-36.0165$ & $246.2114$ \\
+\midrule
+\multirow{3}{*}{Diff ($15^{\prime}$)} 
+   & $g_x$ & $-12.0679$ & $12.5141$ & $0.0033$ & $0.8889$ \\
+   & $g_y$ & $-11.6858$ & $10.1128$ & $-0.0000$ & $0.7200$ \\
+   & $g_z$ & $-21.5349$ & $12.9305$ & $-0.9188$ & $1.1335$ \\
+\midrule
+\multirow{3}{*}{PH ($6^{\prime}$)} 
+   & $g_x$ & $-488.5107$ & $932.2260$ & $10.3829$ & $154.4438$ \\
+   & $g_y$ & $-551.4422$ & $606.3592$ & $0.0197$  & $150.3391$ \\
+   & $g_z$ & $-721.8638$ & $1187.8352$ & $-35.2429$ & $246.3798$ \\
+\midrule
+\multirow{3}{*}{Diff ($6^{\prime}$)} 
+   & $g_x$ & $-1.9898$ & $2.0846$ & $0.0006$ & $0.1456$ \\
+   & $g_y$ & $-2.1117$ & $1.6070$ & $-0.0000$ & $0.1181$ \\
+   & $g_z$ & $-3.3589$ & $2.3430$ & $-0.1474$ & $0.1888$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \clearpage
 \bibliographystyle{seg}
