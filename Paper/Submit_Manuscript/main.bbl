@@ -97,6 +97,9 @@ Rexer, M., C. Hirt, S. Claessens, and R. Tenzer,  2016, Layer-{{Based Modelling}
 \bibitem[Saraswati et~al., 2019]{Saraswati2019JGeod}
 Saraswati, A.~T., R. Cattin, S. Mazzotti, and C. Cadio,  2019, New analytical solution and associated software for computing full-tensor gravitational field due to irregularly shaped bodies: Journal of Geodesy, {\bfseries 93}, 2481--2497.
 
+\bibitem[Schuhmacher et~al., 2024]{Schuhmacher2024JOSS}
+Schuhmacher, J., E. Blazquez, F. Gratl, D. Izzo, and P. G{\'o}mez,  2024, Efficient {{Polyhedral Gravity Modeling}} in {{Modern C}}++ and {{Python}}: Journal of Open Source Software, {\bfseries 9}, 6384.
+
 \bibitem[Singh and Guptasarma, 2001]{Singh2001Geophysics}
 Singh, B., and D. Guptasarma,  2001, New method for fast computation of gravity and magnetic anomalies from arbitrary polyhedra: Geophysics, {\bfseries 66}, 521--526.
 
