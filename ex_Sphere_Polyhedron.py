@@ -20,7 +20,7 @@ print("="*80)
 # True volume and surface area of unit sphere
 vol_true  = 4 * np.pi / 3
 area_true = 4 * np.pi
-nsub_max = 10
+nsub_max = 12
 NSUBs = np.arange(nsub_max + 1)
 # ------------------------------------------------------------------
 # (1) Recursive subdivision of an icosahedron
@@ -106,7 +106,7 @@ for col, nsub in enumerate(pickNs):
                                      title_font_size=14, label_font_size=12,
                                      n_labels=3, position_y=0.05, fmt='%.3f'))
     pl.camera.zoom(1.25)
-# pl.screenshot("Sphere_Polyhedron.png");
+pl.screenshot("Sphere_Polyhedron.png");
 pl.show()
 # %% 
 # # ! End time

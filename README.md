@@ -2,23 +2,14 @@
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange.svg)](https://jupyter.org/)
 
-Efficient Python implementation for computing gravitational fields of polyhedral bodies using Vectorized/Parallel algorithms. This repository provides tools for geophysical modelling, planetary science, and asteroid gravity analysis.
+Fast, exact polyhedral gravity modelling in Python. A vectorized and parallelized Numba implementation for geophysical, planetary, and asteroid applications.
 
 ## 🌟 Features
 
-- **Parallel Computation**: High-performance gravity field calculations using Numba
-- **Polyhedral Models**: Support for complex 3D geometries approximated by polyhedrons
-- **Multiple Coordinate Systems**: Local Cartesian and Global Spherical coordinates
-- **Validation Tools**: Green's third identity verification for accuracy assessment
-- **Real-world Examples**: Applications to asteroid EROS and Moon topography
-
-## 📋 Table of Contents
-
-- [Installation](#installation)
-- [Benchmark](#-benchmark)
-- [Numerical Examples](#-numerical-examples)
+- **Vectorized & Parallel Algorithms**: Numba-accelerated implementation for fast polyhedral gravity calculations on complex 3D geometries.
+- **Exact Analytical Solutions**: Computation of gravitational potential, acceleration, and gradient tensor for arbitrary polyhedra.
+- **Reproducible Results**: Complete scripts to reproduce all figures and tables from the manuscript.
 
 ## 🚀 Installation
 
@@ -30,17 +21,37 @@ cd VecWerSch
 conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
-## File list table
-for each file, what it does
+## 📂 Repository Structure
 
-## Script/Notebook table showing the workflow of every numerical example
-| Script | Require inputs | Produce outputs | parameter/estimated run time | Manuscript Table/Figure|
+## 🔬 Reproducibility Guide
+
+Complete specifications for each numerical example. Click to expand details.
+
+<details>
+<summary><strong>ex_Benchmark_WerSch_v1v2.py</strong> – WerSch Numba v1 vs v2 performance & accuracy benchmark</summary>
+
+- **📊 Produces:** **Figure 1** in manuscript
+- **Generated Outputs:** `Benchmark_WerSch_v1v2_nsub{nsub_max}.png`
+- **Required Inputs:** None (meshes and observation points are generated programmatically via `pv.Icosphere` and Fibonacci sphere sampling)
+- **Job Log:** [`joblog_Benchmark_v1v2_nsub8.out`](JobLogs/joblog_Benchmark_v1v2_nsub8.out)
+- **Est. Runtime:**
+  - `nsub_max=6`: ~25 min
+  - `nsub_max=7`: ~1 h 40 min
+  - `nsub_max=8`: ~7 h
+</details>
+
+<details>
+<summary><strong>ex_Sphere_Polyhedron.py</strong> – Sphere approximation: icosahedron subdivision vs. geographic grid</summary>
+
+- **📊 Produces:** **Figure 2** and **Table 1** in manuscript
+- **Generated Outputs:** `Sphere_Polyhedron.png`
+- **Required Inputs:** None (meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`)
+- **Job Log:** [`joblog_Sphere_Polyhedron_nsub12.out`](JobLogs/joblog_Sphere_Polyhedron_nsub12.out)
+- **Key Parameters:** `nsub_max=12`, two meshing methods (recursive icosahedron subdivision, triangulated regular geographic grid)
+- **Est. Runtime (`nsub_max=12`):** ~5 min
+</details>
 
 
-
-## 📊 Benchmark
-
-## 🔬 Numerical Examples
 
 ## 🤝 Contributing
 
