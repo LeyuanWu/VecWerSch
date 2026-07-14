@@ -30,80 +30,17 @@ cd VecWerSch
 conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
+## File list table
+for each file, what it does
+
+## Script/Notebook table showing the workflow of every numerical example
+| Script | Require inputs | Produce outputs | parameter/estimated run time | Manuscript Table/Figure|
+
+
+
 ## 📊 Benchmark
 
-<!-- ![Benchmark comparison of two algorithms](Figs/Benchmark_WerSch_v1v2_nsub8.png) -->
-<div align="center">
-  <img src="Figs/Benchmark_WerSch_v1v2_nsub8.png" width="500"/>
-  <p><em>Benchmark comparison of two algorithms</em></p>
-</div>
-
 ## 🔬 Numerical Examples
-
-### Sphere Approximation Methods
-- [x] **Icosphere & Geosphere**: Two approaches to approximate spheres with polyhedrons
-  - Recursive icosahedron subdivision
-  - Triangulated geographic grid
-
-<div align="center">
-  <img src="Figs/Sphere_Polyhedron.png" width="600"/>
-  <p><em>Icosphere vs. geosphere polyhedral approximations of an ideal sphere</em></p>
-</div>
-
-[View Sphere Polyhedron Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Sphere_Polyhedron.ipynb)
-
-### Synthetic sphere modelling
-
-[View Sphere gravity computation Example](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_IcoGeoSphere_Global.ipynb)
-
-### Asteroid EROS
-- [x] **2D Plane Gravity Computation**: Gravitational anomalies on a 2D plane
-- [x] **Green's Third Identity Validation**: Accuracy verification for polyhedral methods
-
-<div align="center">
-  <img src="Figs/EROS_2DPlane_GPV.png" width="600"/>
-  <p><em>EROS gravity potential and vector on a 2D plane</em></p>
-</div>
-
-[View EROS: 2D plane computation](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_2DPlane.ipynb)
-
-<div align="center">
-  <img src="Figs/EROS_Geometry.png" width="600"/>
-  <p><em>EROS geometry refinement with surface gravity</em></p>
-</div>
-
-[View EROS: mesh refinement and surface gravity](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_1.ipynb)
-
-<div align="center">
-  <img src="Figs/EROS_ErrorMaps.png" width="600"/>
-  <p><em>Numerical validation of Green's third ID across refinement levels</em></p>
-</div>
-
-[View EROS: Green's Third ID convergence](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_EROS_GreenThirdID_2.ipynb)
-
-### Moon Topography
-- [x] **Moon Gravity Fields**: Comparison of polyhedral analytical vs. spherical harmonics methods
-
-<div align="center">
-  <img src="Figs/Moon_Topo_Ref1738km_3D.png" width="600"/>
-  <p><em>Moon topography 3D view </em></p>
-</div>
-
-<div align="center">
-  <img src="Figs/Moon_FAG_r1748km_3D.png" width="600"/>
-  <p><em>3D view of Moon's Free-air gravity anomaly at r=1748 km </em></p>
-</div>
-
-<div align="center">
-  <img src="Figs/Moon_TopoGz_PH_vs_SH_2.png" width="600"/>
-  <p><em>Moon's TGP computation comparison: SH vs PH method </em></p>
-</div>
-
-[Moon topography & gravity overview](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Data.ipynb)
-
-[Moon TGP computation: SH](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_Comp_SH.ipynb)
-
-[Moon TGP computation: PH vs SH](https://github.com/LeyuanWu/VecWerSch/blob/main/ex_Moon_TopoGrav_PH_vs_SH_1.ipynb)
 
 ## 🤝 Contributing
 

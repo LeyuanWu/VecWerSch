@@ -1,6 +1,4 @@
 jggrx_1500e_sha.tab
-Moon_shape_5759.sh
-Moon_shape_2879.sh
 moon_topo_Lshp359_1arcmin.nc
 moon_topo_Lshp359_2arcmin.nc
 moon_topo_Lshp359_3arcmin.nc
@@ -14,5 +12,4 @@ moon_topo_gravity_Lshp359_nmax7.nc
 moon_topo_gravity_in15arcmin_out15arcmin.nc
 moon_topo_gravity_in6arcmin_out15arcmin.nc
 moon_topo_gravity_in3arcmin_out15arcmin.nc
-archive/
-backup/
+Paper/
