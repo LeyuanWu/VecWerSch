@@ -37,7 +37,7 @@ Complete specifications for each numerical example. Click to expand details.
   - Observation points generated programmatically via `fibonacci_sphere_points`
 - **Generated Outputs:** `Benchmark_WerSch_v1v2_nsub{nsub_max}.png`
 - **Job Log:** [`joblog_Benchmark_v1v2_nsub8.out`](JobLogs/joblog_Benchmark_v1v2_nsub8.out)
-- **Est. Runtime:**
+- ⏱️ **Est. Runtime:**
   - `nsub_max=6`: ~25 min
   - `nsub_max=7`: ~1 h 40 min
   - `nsub_max=8`: ~7 h
@@ -51,7 +51,7 @@ Complete specifications for each numerical example. Click to expand details.
   - Meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`
 - **Generated Outputs:** `Sphere_Polyhedron.png`
 - **Job Log:** [`joblog_Sphere_Polyhedron_nsub12.out`](JobLogs/joblog_Sphere_Polyhedron_nsub12.out)
-- **Est. Runtime:** 
+- ⏱️ **Est. Runtime:** 
   - `nsub_max=12`: ~5 min
 
 
@@ -70,7 +70,7 @@ Complete specifications for each numerical example. Click to expand details.
 - **Memory Requirement** ($N_T = 20 \times 4^{nsub\_max}$):
   - `nsub_max=11` ($N_T \approx 8.4 \times 10^7$): v1 ~12.8 GB · v2 ~1.9 GB
   - `nsub_max=12` ($N_T \approx 3.4 \times 10^8$): ⚠️ **v1 ~51.2 GB** · v2 ~7.5 GB
-- **Est. Runtime:**
+- ⏱️ **Est. Runtime:**
   - `nsub_max=10`: ~35 min
   - `nsub_max=11`: ~2 h 20 min
   - `nsub_max=12`: ~19.5 h
@@ -83,7 +83,7 @@ Complete specifications for each numerical example. Click to expand details.
   - 📦 `input/EROS.mat` *(binary MATLAB file — EROS asteroid polyhedral shape models)*
 - **Generated Outputs:**
   - 🖼️ `EROS_Geometry.png`
-- **Est. Runtime:** ~1–2 min 
+- ⏱️ **Est. Runtime:** ~1–2 min 
 
 
 <summary><strong>ex_EROS_GreenThirdID_2.py</strong> – Green’s 3rd Identity validation: convergence & error analysis</summary>
@@ -95,8 +95,20 @@ Complete specifications for each numerical example. Click to expand details.
   - 🖼️ `EROS_Convergence.png`
   - 🖼️ `EROS_ErrorMaps.png`
 - **Job Log:** [`joblog_EROS_GreenThirdID_nsub6_nobs10242.out`](JobLogs/joblog_EROS_GreenThirdID_nsub6_nobs10242.out)
-- **Est. Runtime:** ~4–5 min
+- ⏱️ **Est. Runtime:** ~4–5 min
 
+
+
+<summary><strong>ex_Moon_TopoGrav_Comp_SH.py</strong> – Lunar topographic gravity: spherical harmonics spectral-domain computation</summary>
+
+- 📊 Produces: No direct manuscript figure or table; generates NetCDF input for a downstream manuscript figure
+- 📦 Required Inputs: `input/Moon_shape_719.sh` *(binary .sh file — LOLA lunar shape model)*
+- 🖼️ Generated Outputs:
+  - `Moon_Topo_GMT.png` *(topography map; validation only)*
+  - `Moon_TopoGz_GMT.png` *(vertical gravity component map; validation only)*
+  - `moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — gx/gy/gz grids at r=1748 km; **used as input for downstream manuscript figure**)*
+- 📋 Job Log: [`joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out`](JobLogs/joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out)
+- ⏱️ **Est. Runtime**: ~31 min
 
 
 
