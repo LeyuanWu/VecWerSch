@@ -76,6 +76,27 @@ Complete specifications for each numerical example. Click to expand details.
   - `nsub_max=12`: ~19.5 h
 
 
+<summary><strong>ex_EROS_GreenThirdID_1.py</strong> – Green’s 3rd Identity validation: EROS shape model preparation</summary>
+
+- **📊 Produces:** **Figure 4** in manuscript
+- **Required Inputs:**
+  - 📦 `input/EROS.mat` *(binary MATLAB file — EROS asteroid polyhedral shape models)*
+- **Generated Outputs:**
+  - 🖼️ `EROS_Geometry.png`
+- **Est. Runtime:** ~1–2 min 
+
+
+<summary><strong>ex_EROS_GreenThirdID_2.py</strong> – Green’s 3rd Identity validation: convergence & error analysis</summary>
+
+- **📊 Produces:** **Figure 5** and **Figure 6** in manuscript
+- **Required Inputs:**
+  -   📦 `input/EROS.mat` *(binary MATLAB file — EROS asteroid polyhedral shape model)*
+- **Generated Outputs:**
+  - 🖼️ `EROS_Convergence.png`
+  - 🖼️ `EROS_ErrorMaps.png`
+- **Job Log:** [`joblog_EROS_GreenThirdID_nsub6_nobs10242.out`](JobLogs/joblog_EROS_GreenThirdID_nsub6_nobs10242.out)
+- **Est. Runtime:** ~4–5 min
+
 
 
 
