@@ -21,35 +21,62 @@ cd VecWerSch
 conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
-## 📂 Repository Structure
+<!-- ## 📂 Repository Structure -->
 
 ## 🔬 Reproducibility Guide
 
 Complete specifications for each numerical example. Click to expand details.
 
-<details>
-<summary><strong>ex_Benchmark_WerSch_v1v2.py</strong> – WerSch Numba v1 vs v2 performance & accuracy benchmark</summary>
+
+<summary><strong>ex_Benchmark_WerSch_v1v2.py</strong> – WerSch_numba v1 vs v2 performance & accuracy benchmark</summary>
 
 - **📊 Produces:** **Figure 1** in manuscript
+- **Required Inputs:** 
+  - **No external files needed**
+  - Meshes generated programmatically via `pv.Icosphere` 
+  - Observation points generated programmatically via `fibonacci_sphere_points`
 - **Generated Outputs:** `Benchmark_WerSch_v1v2_nsub{nsub_max}.png`
-- **Required Inputs:** None (meshes and observation points are generated programmatically via `pv.Icosphere` and Fibonacci sphere sampling)
 - **Job Log:** [`joblog_Benchmark_v1v2_nsub8.out`](JobLogs/joblog_Benchmark_v1v2_nsub8.out)
 - **Est. Runtime:**
   - `nsub_max=6`: ~25 min
   - `nsub_max=7`: ~1 h 40 min
   - `nsub_max=8`: ~7 h
-</details>
 
-<details>
+
 <summary><strong>ex_Sphere_Polyhedron.py</strong> – Sphere approximation: icosahedron subdivision vs. geographic grid</summary>
 
 - **📊 Produces:** **Figure 2** and **Table 1** in manuscript
+- **Required Inputs:** 
+  - **No external files needed**
+  - Meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`
 - **Generated Outputs:** `Sphere_Polyhedron.png`
-- **Required Inputs:** None (meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`)
 - **Job Log:** [`joblog_Sphere_Polyhedron_nsub12.out`](JobLogs/joblog_Sphere_Polyhedron_nsub12.out)
-- **Key Parameters:** `nsub_max=12`, two meshing methods (recursive icosahedron subdivision, triangulated regular geographic grid)
-- **Est. Runtime (`nsub_max=12`):** ~5 min
-</details>
+- **Est. Runtime:** 
+  - `nsub_max=12`: ~5 min
+
+
+<summary><strong>ex_IcoGeoSphere_Global.py</strong> – Global gravity forward modeling: icosahedron vs. geographic grid convergence</summary>
+
+- **📊 Produces:** **Figure 3** in manuscript
+- **Required Inputs:** 
+  - **No external files needed**
+  - Homogeneous Earth sphere model defined analytically
+  - Meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`
+  - Observation points generated programmatically via `fibonacci_sphere_points` (5000 pts × 4 altitudes)
+- **Generated Outputs:** 
+  - `IcoGeoSphere_Global_nsub12_nobs5000.png`
+  - 📦 `output/IcoGeoSphere_Global_nsub12_nobs5000.npz` *(binary cache — cached results for replotting without recomputation)*
+- **Job Log:** [`joblog_IcoGeoSphere_Global_nsub12_nobs5000.out`](JobLogs/joblog_IcoGeoSphere_Global_nsub12_nobs5000.out)
+- **Memory Requirement** ($N_T = 20 \times 4^{nsub\_max}$):
+  - `nsub_max=11` ($N_T \approx 8.4 \times 10^7$): v1 ~12.8 GB · v2 ~1.9 GB
+  - `nsub_max=12` ($N_T \approx 3.4 \times 10^8$): ⚠️ **v1 ~51.2 GB** · v2 ~7.5 GB
+- **Est. Runtime:**
+  - `nsub_max=10`: ~35 min
+  - `nsub_max=11`: ~2 h 20 min
+  - `nsub_max=12`: ~19.5 h
+
+
+
 
 
 
