@@ -34,6 +34,8 @@ Complete specifications for each numerical example. Click to expand details.
 - 🖼️ Generated Outputs: `Benchmark_WerSch_v1v2_nsub{nsub_max}.png` → renamed as **Figure 1** in manuscript 
 - 📋 Job Log: [`joblog_Benchmark_v1v2_nsub8.out`](JobLogs/joblog_Benchmark_v1v2_nsub8.out)
 - ⏱️ Est. Runtime:
+  - `nsub_max=4`: ~1 min
+  - `nsub_max=5`: ~6 min
   - `nsub_max=6`: ~25 min
   - `nsub_max=7`: ~1 h 40 min
   - `nsub_max=8`: ~7 h

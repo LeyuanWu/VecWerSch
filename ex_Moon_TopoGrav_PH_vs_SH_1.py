@@ -27,9 +27,9 @@ arr_topo = xr_topo['topo'].data
 max_nmax = 7
 nc_SH = f'output/moon_topo_gravity_Lshp{lmax_shp}_nmax{max_nmax}.nc'
 xr_SH = xr.open_dataset(nc_SH)
-gn_SH = xr_SH['gx'].data[::max_nmax, ::max_nmax]
-ge_SH = xr_SH['gy'].data[::max_nmax, ::max_nmax]
-gd_SH = xr_SH['gz'].data[::max_nmax, ::max_nmax]
+gn_SH = xr_SH['gx'].data
+ge_SH = xr_SH['gy'].data
+gd_SH = xr_SH['gz'].data
 #### * PH
 out_res = 15.0/60.0 # degree
 nc_PH = (f"output/moon_topo_gravity_in{int(in_res*60)}arcmin"

@@ -100,12 +100,12 @@ for var, arr in zip(vars, [arr_gx, arr_gy, arr_gz]):
           f"mean: {np.mean(arr):12.4f} mGal\n std: {np.std(arr):12.4f} mGal")
 # %% 
 # # ! Save gx, gy, gz to NetCDF
-lat = gz_tgp_moon.lats()
-lon = gz_tgp_moon.lons()
+lat = gz_tgp_moon.lats()[::max_nmax]
+lon = gz_tgp_moon.lons()[::max_nmax]
 data_vars = {
-    'gx': (('latitude', 'longitude'), arr_gx),
-    'gy': (('latitude', 'longitude'), arr_gy),
-    'gz': (('latitude', 'longitude'), arr_gz)}
+    'gx': (('latitude', 'longitude'), arr_gx[::max_nmax, ::max_nmax]),
+    'gy': (('latitude', 'longitude'), arr_gy[::max_nmax, ::max_nmax]),
+    'gz': (('latitude', 'longitude'), arr_gz[::max_nmax, ::max_nmax])}
 
 ds = xr.Dataset(
     data_vars=data_vars,
