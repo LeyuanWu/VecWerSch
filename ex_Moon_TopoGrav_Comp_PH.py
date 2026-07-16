@@ -69,7 +69,7 @@ Verts = mesh_shp_moon.points / 1.e3 # km
 Faces = mesh_shp_moon.regular_faces
 del mesh_shp_moon
 #### * Calculation points
-out_res = 600.0/60.0 # degree
+out_res = 15.0/60.0 # degree
 lon_1D = np.arange(0, 360+out_res, out_res)
 lat_1D = np.arange(90, -90-out_res, -out_res)
 [LON_2D, LAT_2D] = np.meshgrid(np.deg2rad(lon_1D), np.deg2rad(lat_1D))

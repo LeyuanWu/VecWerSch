@@ -52,7 +52,7 @@ Complete specifications for each numerical example. Click to expand details.
 </details>
 
 <details>
-<summary><strong>ex_IcoGeoSphere_Global.py</strong> – Global gravity forward modeling: icosahedron vs. geographic grid convergence</summary>
+<summary><strong>ex_IcoGeoSphere_Global.py</strong> – Global gravity forward modelling: icosahedron vs. geographic grid convergence</summary>
 
 - 📊 Produces: **Figure 3** in manuscript
 - 📦 Required Inputs: No external files needed; homogeneous Earth sphere model defined analytically; meshes generated via `pv.Icosphere` and `pv.Sphere`; observation points generated via `fibonacci_sphere_points` (5000 pts × 4 altitudes)
@@ -98,12 +98,28 @@ Complete specifications for each numerical example. Click to expand details.
 - 🖼️ Generated Outputs:
   - `Moon_Topo_GMT.png` *(topography map; validation only)*
   - `Moon_TopoGz_GMT.png` *(vertical gravity component map; validation only)*
-  - `output/moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — gx/gy/gz grids at r=1748 km; **used as input for downstream manuscript figure**)*
+  - `output/moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — gx/gy/gz grids at r=1748 km; **used as input for downstream SH vs PH comparison**)*
 - 📋 Job Log: [`joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out`](JobLogs/joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out)
 - ⏱️ Est. Runtime: ~31 min
 </details>
 
 
+<details>
+<summary><strong>ex_Moon_TopoGrav_Comp_PH.py</strong> – Lunar topographic gravity: polyhedron spatial-domain computation</summary>
+
+- 📊 Produces: No direct manuscript figure or table; generates NetCDF inputs for downstream scripts 
+- 📦 Required Inputs: `input/Moon_shape_719.sh` *(SHTOOLS binary — LOLA lunar shape model)*
+- 🖼️ Generated Outputs:
+  - `output/moon_topo_gravity_in{in_res}arcmin_out15arcmin.nc` *(NetCDF — full tensor gravity grids at r=1748 km; generated for in_res={6,15} arc-min; **used as input for downstream global SH vs PH comparison**)*
+  - `output/moon_topo_Lshp359_{in_res}arcmin.nc` *(NetCDF — topography grids at 8 resolutions: 1, 2, 3, 4, 5, 6, 10, 15 arc-min; **used as input for downstream mesh generation**)*
+    - ⚡ **Quick-generate note:** Produced by running only the *Shape of Moon* section (first code cell block); no polyhedral gravity computation required. Runtime < 1 min per resolution.
+- 📋 Job Log:
+  - [`joblog_Moon_TopoGrav_Comp_PH_in15arcmin_out15arcmin.out`](JobLogs/joblog_Moon_TopoGrav_Comp_PH_in15arcmin_out15arcmin.out)
+  - [`joblog_Moon_TopoGrav_Comp_PH_in6arcmin_out15arcmin.out`](JobLogs/joblog_Moon_TopoGrav_Comp_PH_in6arcmin_out15arcmin.out)
+- ⏱️ Est. Runtime (output grid fixed at 15 arc-min, 1,038,961 obs pts):
+  - `in_res=15 arc-min` (~2M faces): ~1 h 58 min
+  - `in_res=6 arc-min` (~13M faces): ~15 h 10 min
+</details>
 
 
 ## 🤝 Contributing
