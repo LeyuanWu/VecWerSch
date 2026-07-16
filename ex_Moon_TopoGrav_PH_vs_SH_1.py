@@ -5,8 +5,6 @@
 # # ! Setup
 import numpy as np
 import pandas as pd
-import pyshtools as pysh
-import pygmt
 import xarray as xr
 from datetime import datetime
 from gravity_forward_numba import *
@@ -119,32 +117,6 @@ df_errors = pd.DataFrame(records)
 csv_file_err = "Moon_gNED_errors.csv"
 df_errors.to_csv(csv_file_err, index=False, float_format="%.4f")
 print(f"\nTable data saved to: {csv_file_err}")
-# %% 
-# # ! Mapping: SH vs PH
-err_txt = ['A','B','C','D','E','F','G','H','I','J']
-xr_gd_SH = pysh.SHGrid.from_array(gd_SH).to_xarray()
-xr_d_gd = pysh.SHGrid.from_array(d_gd).to_xarray()
-fig = pygmt.Figure()
-with fig.subplot(nrows=2, ncols=1, figsize=('14c', '16.5c'), margins="0.5c"):
-    with fig.set_panel(panel=0): 
-        fig.grdimage(grid=xr_gd_SH, projection="W-90/14c", 
-                     cmap="haxby", frame="g30")
-        fig.plot(x=lons_1d[lon_indices], y=lats_1d[lat_indices], 
-                 projection="W-90/14c", transparency=25,
-                 style="t0.25c", fill="white", pen="0.25p,black")
-        fig.text(x=lons_1d[lon_indices], y=lats_1d[lat_indices], text=err_txt, 
-                 projection="W-90/14c", justify="BL", 
-                 offset="0.06c/0.0c", font="7p,Helvetica-Bold,black")
-        fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
-                     frame=["a200f100", "x+l@[ g_z^{sh} @[", "y+lmGal"])    
-    with fig.set_panel(panel=1): 
-        fig.grdimage(grid=xr_d_gd, projection="W-90/14c", 
-                     cmap="haxby", frame="g30")
-        xlabel = r"@[ g_z^{ph}-g_z^{sh}: \Delta \lambda = \Delta \theta = 15^{\prime}@["
-        fig.colorbar(position="JBC+o0/0.15i+w10c/0.3h", 
-                     frame=["a5f5", f"x+l{xlabel}", "y+lmGal"])    
-# fig.savefig('Moon_TopoGz_PH_vs_SH_1.png', dpi=400)
-fig.show(width=800)
 # %% 
 # # ! End time
 print("=" * 80)

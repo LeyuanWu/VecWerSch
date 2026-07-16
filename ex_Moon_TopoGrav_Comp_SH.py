@@ -5,7 +5,6 @@
 # # ! Setup
 import numpy as np
 import pyshtools as pysh
-import pygmt
 import xarray as xr
 import time
 from datetime import datetime
@@ -87,26 +86,6 @@ for i_clm in np.arange(len(clms)):
         print(fmt.format(nmax, lmax1+1, lmax2, t1,
                          min_gz, max_gz, mean_gz, std_gz))
 # %% 
-# # ! Topography
-grd_shp_moon = clm_shp_moon.expand()
-grd_topo_moon = (grd_shp_moon - r_itfc) / 1.e3
-fig = pygmt.Figure()
-grd_topo_moon.plotgmt(fig=fig,
-                      projection='mollweide',
-                      central_longitude=-90.,
-                      grid=[30, 30],
-                      tick_interval=None,
-                      cmap='haxby',
-                      cmap_limits=[-8, 8],
-                      colorbar='bottom',
-                      cb_triangles='both',
-                      cb_label="Topography (km)",
-                      cb_tick_interval=1,
-                      cb_minor_tick_interval=0.5,
-                      shading=False)
-# fig.savefig('Moon_Topo_GMT.png', dpi=400)
-fig.show(width=800)
-# %% 
 # # ! Topographic potential
 clm_tgp_moon = clms[-1]
 grd_tgp_moon = clm_tgp_moon.expand(a=r_calc, f=0.0)
@@ -119,23 +98,6 @@ for var, arr in zip(vars, [arr_gx, arr_gy, arr_gz]):
     print(f"Topographic Gravitational Potential: {var}")
     print(f" min: {np.min(arr):12.4f} mGal\n max: {np.max(arr):12.4f} mGal \n"
           f"mean: {np.mean(arr):12.4f} mGal\n std: {np.std(arr):12.4f} mGal")
-fig = pygmt.Figure()
-gz_tgp_moon.plotgmt(fig=fig,
-                    projection='mollweide',
-                    central_longitude=-90.,
-                    grid=[30, 30],
-                    tick_interval=None,
-                    cmap='haxby',
-                    cmap_limits=[-800, 800],
-                    colorbar='bottom',
-                    cb_triangles='both',
-                    cb_label=r"@[ g_z @[ (mGal)",
-                    axes_labelsize=12,
-                    cb_tick_interval=200,
-                    cb_minor_tick_interval=100,
-                    shading=False)
-# fig.savefig('Moon_TopoGz_GMT.png', dpi=400)
-fig.show(width=800)
 # %% 
 # # ! Save gx, gy, gz to NetCDF
 lat = gz_tgp_moon.lats()

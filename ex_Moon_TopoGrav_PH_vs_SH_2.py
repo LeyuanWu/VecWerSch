@@ -7,7 +7,6 @@ import pandas as pd
 import pyshtools as pysh
 import pygmt
 import xarray as xr
-import time
 from datetime import datetime
 from gravity_forward_numba import *
 # %% 
@@ -117,7 +116,7 @@ with fig.subplot(nrows=2, ncols=2, figsize=('14c', '8.8c'), margins="0.5c"):
         fig.colorbar(position="JBC+o0.3/0.2i+w5c/0.3h", 
                      frame=["a1f0.5", f"x+l{xlabel}", "y+lmGal"])    
 fig.savefig('Moon_TopoGz_PH_vs_SH_2.png', dpi=400)
-fig.show(width=800)
+# fig.show(width=800)
 # %% 
 # # ! End time
 print("=" * 80)

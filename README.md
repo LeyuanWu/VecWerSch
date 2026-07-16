@@ -1,6 +1,7 @@
 # VecWerSch: Vectorized/Parallel Polyhedral Gravitational Field Computation
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/)
+[![Jupyter Notebook](https://img.shields.io/badge/Jupyter-Notebook-orange.svg)](https://jupyter.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Fast, exact polyhedral gravity modelling in Python. A vectorized and parallelized Numba implementation for geophysical, planetary, and asteroid applications.
@@ -21,8 +22,6 @@ cd VecWerSch
 conda install numpy numba matplotlib pyvista pygmt pyshtools
 ```
 
-<!-- ## 📂 Repository Structure -->
-
 ## 🔬 Reproducibility Guide
 
 Complete specifications for each numerical example. Click to expand details.
@@ -32,7 +31,7 @@ Complete specifications for each numerical example. Click to expand details.
 
 - 📊 Produces: **Figure 1** in manuscript
 - 📦 Required Inputs: No external files needed; meshes generated programmatically via `pv.Icosphere`; observation points generated via `fibonacci_sphere_points`
-- 🖼️ Generated Outputs: `Benchmark_WerSch_v1v2_nsub{nsub_max}.png`
+- 🖼️ Generated Outputs: `Benchmark_WerSch_v1v2_nsub{nsub_max}.png` → renamed as **Figure 1** in manuscript 
 - 📋 Job Log: [`joblog_Benchmark_v1v2_nsub8.out`](JobLogs/joblog_Benchmark_v1v2_nsub8.out)
 - ⏱️ Est. Runtime:
   - `nsub_max=6`: ~25 min
@@ -45,7 +44,7 @@ Complete specifications for each numerical example. Click to expand details.
 
 - 📊 Produces: **Figure 2** and **Table 1** in manuscript
 - 📦 Required Inputs: No external files needed; meshes generated programmatically via `pv.Icosphere` and `pv.Sphere`
-- 🖼️ Generated Outputs: `Sphere_Polyhedron.png`
+- 🖼️ Generated Outputs: `Sphere_Polyhedron.png` → renamed as **Figure 2** in manuscript 
 - 📋 Job Log: [`joblog_Sphere_Polyhedron_nsub12.out`](JobLogs/joblog_Sphere_Polyhedron_nsub12.out)
 - ⏱️ Est. Runtime:
   - `nsub_max=12`: ~5 min
@@ -57,7 +56,7 @@ Complete specifications for each numerical example. Click to expand details.
 - 📊 Produces: **Figure 3** in manuscript
 - 📦 Required Inputs: No external files needed; homogeneous Earth sphere model defined analytically; meshes generated via `pv.Icosphere` and `pv.Sphere`; observation points generated via `fibonacci_sphere_points` (5000 pts × 4 altitudes)
 - 🖼️ Generated Outputs:
-  - `IcoGeoSphere_Global_nsub12_nobs5000.png`
+  - `IcoGeoSphere_Global_nsub12_nobs5000.png` → renamed as **Figure 3** in manuscript 
   - `output/IcoGeoSphere_Global_nsub12_nobs5000.npz` *(NPZ — cached results for replotting without recomputation)*
 - 📋 Job Log: [`joblog_IcoGeoSphere_Global_nsub12_nobs5000.out`](JobLogs/joblog_IcoGeoSphere_Global_nsub12_nobs5000.out)
 - 💾 Memory Requirement ($N_T = 20 \times 4^{nsub\_max}$):
@@ -74,7 +73,7 @@ Complete specifications for each numerical example. Click to expand details.
 
 - 📊 Produces: **Figure 4** in manuscript
 - 📦 Required Inputs: `input/EROS.mat` *(MAT — EROS asteroid polyhedral shape models)*
-- 🖼️ Generated Outputs: `EROS_Geometry.png`
+- 🖼️ Generated Outputs: `EROS_Geometry.png` → renamed as **Figure 4** in manuscript 
 - ⏱️ Est. Runtime: ~1–2 min
 </details>
 
@@ -84,8 +83,8 @@ Complete specifications for each numerical example. Click to expand details.
 - 📊 Produces: **Figure 5** and **Figure 6** in manuscript
 - 📦 Required Inputs: `input/EROS.mat` *(MAT — EROS asteroid polyhedral shape model)*
 - 🖼️ Generated Outputs:
-  - `EROS_Convergence.png`
-  - `EROS_ErrorMaps.png`
+  - `EROS_Convergence.png` → renamed as **Figure 5** in manuscript 
+  - `EROS_ErrorMaps.png` → renamed as **Figure 6** in manuscript 
 - 📋 Job Log: [`joblog_EROS_GreenThirdID_nsub6_nobs10242.out`](JobLogs/joblog_EROS_GreenThirdID_nsub6_nobs10242.out)
 - ⏱️ Est. Runtime: ~4–5 min
 </details>
@@ -96,8 +95,6 @@ Complete specifications for each numerical example. Click to expand details.
 - 📊 Produces: No direct manuscript figure/table; generates NetCDF input for a downstream manuscript figure
 - 📦 Required Inputs: `input/Moon_shape_719.sh` *(SHTOOLS binary — LOLA lunar shape model)*
 - 🖼️ Generated Outputs:
-  - `Moon_Topo_GMT.png` *(topography map; validation only)*
-  - `Moon_TopoGz_GMT.png` *(vertical gravity component map; validation only)*
   - `output/moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — gx/gy/gz grids at r=1748 km; **used as input for downstream SH vs PH comparison**)*
 - 📋 Job Log: [`joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out`](JobLogs/joblog_Moon_TopoGrav_Comp_SH_Lshp359_nmax7.out)
 - ⏱️ Est. Runtime: ~31 min
@@ -125,23 +122,50 @@ Complete specifications for each numerical example. Click to expand details.
 <details>
 <summary><strong>ex_Moon_TopoGrav_PH_vs_SH_1.py</strong> – Lunar topographic gravity: PH vs SH comparison at 15 arc-min resolution</summary>
 
-- 📊 Produces: No direct manuscript figure or table; generates validation plot and error-location CSV for downstream multi-resolution analysis
+- 📊 Produces: No direct manuscript figure or table; generates error-location CSV for downstream multi-resolution analysis
 - 📦 Required Inputs:
   - `output/moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — SH gravity components; generated by `ex_Moon_TopoGrav_Comp_SH.py`)*
   - `output/moon_topo_gravity_in15arcmin_out15arcmin.nc` *(NetCDF — PH gravity components; generated by `ex_Moon_TopoGrav_Comp_PH.py`)*
   - `output/moon_topo_Lshp359_15arcmin.nc` *(NetCDF — lunar topography grid; generated by `ex_Moon_TopoGrav_Comp_PH.py`, shape-only section)*
 - 🖼️ Generated Outputs:
-  - `Moon_TopoGz_PH_vs_SH_1.png` *(Validation only — gz_SH map with error peak markers + Δgz difference map; not included in manuscript)*
-  - `Moon_gNED_errors.csv` *(Top-10 largest |Δgz| locations with >1000 km separation; **used as fixed evaluation points for downstream comparison across 8 topography resolutions using `moon_topo_Lshp359_{in_res}arcmin.nc`**)*
+  - `output/Moon_gNED_errors.csv` *(Top-10 largest |Δgz| locations with >1000 km separation; used as fixed evaluation points for downstream comparison across 8 topography resolutions using `moon_topo_Lshp359_{in_res}arcmin.nc`)*
 - ⏱️ Est. Runtime: ~1–2 min *(post-processing only; no forward modelling)*
 </details>
 
+<details>
+<summary><strong>ex_Moon_TopoGrav_PH_vs_SH_2.py</strong> – Lunar topographic gravity: PH vs SH comparison at 15′ and 6′ resolutions</summary>
+
+- 📊 Produces: **Figure 7** and **Table 2** in manuscript
+- 📦 Required Inputs:
+  - `output/moon_topo_Lshp359_15arcmin.nc` *(NetCDF — lunar topography grid; generated by `ex_Moon_TopoGrav_Comp_PH.py`, shape-only section)*
+  - `output/moon_topo_gravity_Lshp359_nmax7.nc` *(NetCDF — SH gravity components; generated by `ex_Moon_TopoGrav_Comp_SH.py`)*
+  - `output/moon_topo_gravity_in15arcmin_out15arcmin.nc` *(NetCDF — PH gravity at 15′ input; generated by `ex_Moon_TopoGrav_Comp_PH.py`)*
+  - `output/moon_topo_gravity_in6arcmin_out15arcmin.nc` *(NetCDF — PH gravity at 6′ input; generated by `ex_Moon_TopoGrav_Comp_PH.py`)*
+  - `output/Moon_gNED_errors.csv` *(Top-10 error locations; generated by `ex_Moon_TopoGrav_PH_vs_SH_1.py`)*
+- 🖼️ Generated Outputs:
+  - `Moon_TopoGz_PH_vs_SH_2.png` → renamed as **Figure 7** in manuscript 
+  - Console summary statistics → **Table 2** in manuscript *(min/max/mean/std of gN/gE/gD for SH, PH-15′, PH-6′, and their differences)*
+- ⏱️ Est. Runtime: ~1–2 min *(post-processing only; no forward modelling)*
+- ⚠️ **Notebook Fallback:** Batch execution may fail to save the PNG due to a PyGMT memory deallocation bug. Table 2 console output remains valid. If the figure is not generated, use `ex_Moon_TopoGrav_PH_vs_SH_2.ipynb` instead; it contains identical code and reliably produces Figure 7 in an interactive kernel.
+</details>
 
 
+<details>
+<summary><strong>ex_Moon_TopoGrav_PH_vs_SH_3.py</strong> – Lunar topographic gravity: PH error convergence across 8 grid resolutions</summary>
 
-## 🤝 Contributing
+- 📊 Produces: **Figure 8** in manuscript
+- 📦 Required Inputs:
+  - `input/Moon_shape_719.sh` *(SHTOOLS binary — LOLA lunar shape model)*
+  - `output/Moon_gNED_errors.csv` *(Top-10 error locations; generated by `ex_Moon_TopoGrav_PH_vs_SH_1.py`)*
+  - `output/moon_topo_Lshp359_{res}arcmin.nc` *(NetCDF — topography grids at 8 resolutions: 15, 10, 6, 5, 4, 3, 2, 1 arc-min; generated by `ex_Moon_TopoGrav_Comp_PH.py`, shape-only section)*
+- 🖼️ Generated Outputs:
+  - `Moon_TopoGxyz_PH_vs_SH_3.png` → renamed as **Figure 8** in manuscript
+  - Console-printed absolute error tables for gN/gE/gD across all 8 resolutions
+- 📋 Job Log: [`joblog_Moon_TopoGrav_PH_vs_SH_3.out`](JobLogs/joblog_Moon_TopoGrav_PH_vs_SH_3.out)
+- ⏱️ Est. Runtime: ~2 min total *(10 evaluation points × 8 resolutions; dominated by 1-arcmin mesh at ~43 sec)*
+- 💡 **Note:** Despite meshes reaching up to ~467M faces, runtime remains under 2 minutes because forward modelling is performed at only 10 fixed evaluation points (the Top-10 error locations from `ex_Moon_TopoGrav_PH_vs_SH_1.py`), not on a global grid.
+</details>
 
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
