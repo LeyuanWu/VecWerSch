@@ -17,8 +17,8 @@ print("=" * 80)
 # # ! Load Topo data
 #### * Topography
 lmax_shp = 359
-in_res = 15.0/60.0 # degree
-nc_topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
+res_topo = 15.0/60.0 # degree
+nc_topo = f'input/moon_topo_Lshp{lmax_shp}_{int(60*res_topo)}arcmin.nc'
 xr_topo = xr.open_dataset(nc_topo)
 arr_topo = xr_topo['topo'].data
 # %% 
@@ -31,9 +31,10 @@ gn_SH = xr_SH['gx'].data
 ge_SH = xr_SH['gy'].data
 gd_SH = xr_SH['gz'].data
 #### * PH
+in_res  = 15.0/60.0 # degree
 out_res = 15.0/60.0 # degree
-nc_PH = (f"output/moon_topo_gravity_in{int(in_res*60)}arcmin"
-         f"_out{int(out_res*60)}arcmin.nc")
+nc_PH = (f"output/moon_topo_gravity_in{int(60*in_res)}arcmin"
+         f"_out{int(60*out_res)}arcmin.nc")
 xr_PH = xr.open_dataset(nc_PH)
 gn_PH = xr_PH['gN'].data
 ge_PH = xr_PH['gE'].data

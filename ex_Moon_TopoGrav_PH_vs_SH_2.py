@@ -19,7 +19,7 @@ print("=" * 80)
 #### * Topography
 lmax_shp = 359
 res_topo = 15.0/60.0 # degree
-nc_topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*res_topo)}arcmin.nc'
+nc_topo = f'input/moon_topo_Lshp{lmax_shp}_{int(60*res_topo)}arcmin.nc'
 xr_topo = xr.open_dataset(nc_topo)
 arr_topo = xr_topo['topo'].data
 # %% 

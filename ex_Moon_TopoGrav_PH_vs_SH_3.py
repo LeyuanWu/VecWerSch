@@ -92,7 +92,8 @@ for in_res in IN_RES:
     gN, gE, gD, TNN, TNE, TND, TEE, TED, TDD = \
         rotate_vec_ten_ecef2ned(err_lon_rad, err_lat_rad, 
                                 gx, gy, gz, 
-                                Txx, Txy, Txz, Tyy, Tyz, Tzz)
+                                Txx, Txy, Txz, 
+                                Tyy, Tyz, Tzz)
     df_gN_SH_PHs[f'e_gN_PH_{int(60*in_res)}'] = np.round(gN - gN_SH, 4)
     df_gE_SH_PHs[f'e_gE_PH_{int(60*in_res)}'] = np.round(gE - gE_SH, 4)
     df_gD_SH_PHs[f'e_gD_PH_{int(60*in_res)}'] = np.round(gD - gD_SH, 4)
