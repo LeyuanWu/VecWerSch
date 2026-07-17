@@ -67,13 +67,13 @@ zps = r_calc_km * np.sin(err_lat_rad)
 #### * Computation of TGP
 IN_RES = np.array([15.0, 10.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0]) / 60.0 # degree
 for in_res in IN_RES:
-    nc_Topo = f'output/moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
-    grd_topo = pysh.SHGrid.from_netcdf(nc_Topo)
-    grd_shp = grd_topo + r_itfc_km
-    mesh_shp, _ = Shgrid2Mesh(grd_shp)
-    Verts = mesh_shp.points
-    Faces = mesh_shp.regular_faces
-    del mesh_shp
+    lmax_grid = int(90.0/in_res - 1)
+    grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
+                                       lmax_calc=lmax_shp)
+    mesh_shp_moon, _ = Shgrid2Mesh(grd_shp_moon)
+    Verts = mesh_shp_moon.points / 1.e3 # km
+    Faces = mesh_shp_moon.regular_faces
+    del mesh_shp_moon
     P = np.column_stack((xps, yps, zps))
     t0 = time.time()
     vgt_PH = WerSch_numba_v2(P, Verts, Faces, rho0)

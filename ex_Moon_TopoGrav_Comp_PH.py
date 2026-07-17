@@ -54,12 +54,6 @@ in_res = 15.0/60.0 # degree
 lmax_grid = int(90.0/in_res - 1)
 grd_shp_moon = clm_shp_moon.expand(lmax=lmax_grid, 
                                    lmax_calc=lmax_shp)
-grd_topo_moon = grd_shp_moon/1.e3 - r_itfc_km
-nc_file_topo = f'moon_topo_Lshp{lmax_shp}_{int(60*in_res)}arcmin.nc'
-grd_topo_moon.to_netcdf(filename = nc_file_topo,
-                        title = f'Moon topography (shape model up to degree {lmax_shp})',
-                        name='topo', units='km')
-print(f"Saved to '{nc_file_topo}'")
 # %% 
 # # ! Computation of TGP: Polyhedron
 rho0 = 2560.0 # kg/m^3
@@ -120,21 +114,14 @@ print(f'TDD     | {TDD.min():9.3f} | {TDD.max():9.3f} | {TDD.mean():9.3f} | {TDD
 # # ! Saving results to NetCDF
 shape_2D = (len(lat_1D), len(lon_1D))
 data_vars = {
-    'V':   (('latitude', 'longitude'), V.reshape(shape_2D)),
     'gN':  (('latitude', 'longitude'), gN.reshape(shape_2D)),
     'gE':  (('latitude', 'longitude'), gE.reshape(shape_2D)),
     'gD':  (('latitude', 'longitude'), gD.reshape(shape_2D)),
-    'TNN': (('latitude', 'longitude'), TNN.reshape(shape_2D)),
-    'TNE': (('latitude', 'longitude'), TNE.reshape(shape_2D)),
-    'TND': (('latitude', 'longitude'), TND.reshape(shape_2D)),
-    'TEE': (('latitude', 'longitude'), TEE.reshape(shape_2D)),
-    'TED': (('latitude', 'longitude'), TED.reshape(shape_2D)),
-    'TDD': (('latitude', 'longitude'), TDD.reshape(shape_2D)),
 }
 ds = xr.Dataset(
     data_vars=data_vars,
     coords={'longitude': lon_1D, 'latitude': lat_1D},
-    attrs={'description': 'Topographic gravity and gradient components of the Moon',
+    attrs={'description': 'Topographic gravity vector components of the Moon (gN, gE, gD)',
            'r_calc_km': r_calc_km,
            'ref_radius_km': r_itfc_km,
            'rho_kg_m3': rho0,
