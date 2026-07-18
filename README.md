@@ -14,13 +14,23 @@ Fast, exact polyhedral gravity modelling in Python. A vectorized and parallelize
 
 ## 🚀 Installation
 
-Clone the repository and install dependencies:
+1.  Clone the repository and navigate to the project directory:
+    ```bash
+    git clone https://github.com/LeyuanWu/VecWerSch.git
+    cd VecWerSch
+    ```
 
-```bash
-git clone https://github.com/LeyuanWu/VecWerSch.git
-cd VecWerSch
-conda install numpy numba matplotlib pyvista pygmt pyshtools
-```
+2.  Create the Conda environment from the provided `environment.yml`. 
+    ```bash
+    conda env create -f environment.yml -n <your-env-name>
+    ```
+
+3.  Activate the environment using your chosen name before running any scripts or notebooks:
+    ```bash
+    conda activate <your-env-name>
+    ```
+
+> **Note:** The `environment.yml` includes all required dependencies (NumPy, Numba, Matplotlib, PyVista, PyGMT, pyshtools, Jupyter, etc.) pinned to compatible versions. Using this file ensures full reproducibility across Linux, macOS, and Windows, and automatically resolves system-level libraries (e.g., GMT, Ghostscript) via `conda-forge`. Do not install packages individually with `conda install`, as this may lead to version conflicts or missing system dependencies.
 
 ## 🔬 Reproducibility Guide
 

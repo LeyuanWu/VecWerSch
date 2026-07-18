@@ -1,0 +1,24 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numba
+  - numpy
+  - scipy
+  - xarray
+  - netcdf4
+  - matplotlib
+  - pyvista
+  - pygmt
+  - pyshtools
+  - pandas
+  - packaging
+  - jupyterlab
+  - notebook
+  - ipykernel
+  - ipywidgets
+  - jupyter_client <8
+  - pyzmq <25
+  - trame
+  - trame-vtk
+  - trame-vuetify
