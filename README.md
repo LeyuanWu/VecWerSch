@@ -30,7 +30,6 @@ Fast, exact polyhedral gravity modelling in Python. A vectorized and parallelize
     conda activate <your-env-name>
     ```
 
-> **Note:** The `environment.yml` includes all required dependencies (NumPy, Numba, Matplotlib, PyVista, PyGMT, pyshtools, Jupyter, etc.) pinned to compatible versions. Using this file ensures full reproducibility across Linux, macOS, and Windows, and automatically resolves system-level libraries (e.g., GMT, Ghostscript) via `conda-forge`. Do not install packages individually with `conda install`, as this may lead to version conflicts or missing system dependencies.
 
 ## 🔬 Reproducibility Guide
 
