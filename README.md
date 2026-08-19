@@ -14,9 +14,9 @@ Fast, exact polyhedral gravity modelling in Python. A vectorized and parallelize
 
 ## 🚀 Installation
 
-1.  Clone the repository and navigate to the project directory:
+1.  Clone or download the repository and navigate to the project directory:
     ```bash
-    git clone https://github.com/LeyuanWu/VecWerSch.git
+    git clone <repo url>
     cd VecWerSch
     ```
 
