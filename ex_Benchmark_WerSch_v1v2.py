@@ -123,63 +123,69 @@ print_table(f"Max Abs Diff Tzz (Eotvos), with Ref. std {np.std(Tzz1):.2f} Eotvos
             MAD_Tzz, fmt='8.2e')
 # %%
 # # ! Plotting
-fig, axs = plt.subplots(2, 2, figsize=(9, 8))
+# ------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------
+def sci(v, sig=1):
+    """Compact scientific notation: 2.2e-3 instead of 2.2e-03."""
+    m, e = f"{v:.{sig}e}".split("e")
+    return f"{m}e{int(e)}"
 
-# Time v1
-X, Y = np.meshgrid(NSUBs, NSUBs)
-im1 = axs[0,0].pcolormesh(X, Y, tc_v1, 
-                          shading='nearest',
-                          cmap='turbo', 
-                          norm=LogNorm())
-axs[0,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axs[0,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axs[0,0].set_xticks(NSUBs)
-axs[0,0].set_yticks(NSUBs)
-plt.colorbar(im1, ax=axs[0,0])
+def cell_text_color(cmap, norm, v):
+    """White digits on dark cells, black digits on bright cells."""
+    r, g, b, _ = cmap(norm(v))
+    luminance = 0.299 * r + 0.587 * g + 0.114 * b
+    return 'white' if luminance < 0.55 else 'black'
 
-# Time v2
-im2 = axs[0,1].pcolormesh(X, Y, tc_v2, 
-                          shading='nearest',
-                          cmap='turbo', 
-                          norm=LogNorm())
-axs[0,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axs[0,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axs[0,1].set_xticks(NSUBs)
-axs[0,1].set_yticks(NSUBs)
-plt.colorbar(im2, ax=axs[0,1])
+def annotate(ax, data, cmap, norm, fmt, fontsize):
+    for j in range(data.shape[0]):
+        for i in range(data.shape[1]):
+            ax.text(i, j, fmt(data[j, i]), ha='center', va='center',
+                    fontsize=fontsize,
+                    color=cell_text_color(cmap, norm, data[j, i]))
 
-# Ratio t2/t1
+# ------------------------------------------------------------------
+# Panel configuration: (data, cmaps, norm, fmt, fontsize, letter)
+# ------------------------------------------------------------------
+cmap_turbo   = plt.get_cmap('turbo')
+cmap_rdbu    = plt.get_cmap('RdBu_r')
+cmap_viridis = plt.get_cmap('viridis')
+
 ratio = tc_v2 / tc_v1
-vmin, vmax = np.min(ratio), np.max(ratio)
-norm_ratio = TwoSlopeNorm(vmin=vmin, vcenter=1, vmax=vmax)
-im3 = axs[1,0].pcolormesh(X, Y, ratio, 
-                          shading='nearest',
-                          cmap='RdBu_r', 
-                          norm=norm_ratio)
-axs[1,0].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axs[1,0].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axs[1,0].set_xticks(NSUBs)
-axs[1,0].set_yticks(NSUBs)
-plt.colorbar(im3, ax=axs[1,0])
+norm_time  = LogNorm(vmin=min(tc_v1.min(), tc_v2.min()),
+                     vmax=max(tc_v1.max(), tc_v2.max()))
+norm_ratio = TwoSlopeNorm(vmin=ratio.min(), vcenter=1, vmax=ratio.max())
+norm_diff  = LogNorm(vmin=MAD_gz.min(), vmax=MAD_gz.max())
 
-# Max abs diff gz
-im4 = axs[1,1].pcolormesh(X, Y, MAD_gz, 
-                          shading='nearest',
-                          cmap='viridis', 
-                          norm=LogNorm())
-axs[1,1].set_xlabel(r'Obs level $i$: $N_P = 20 \times 4^{i}$')
-axs[1,1].set_ylabel(r'Mesh level $j$: $N_T = 20 \times 4^{j}$')
-axs[1,1].set_xticks(NSUBs)
-axs[1,1].set_yticks(NSUBs)
-plt.colorbar(im4, ax=axs[1,1])
+panels = [
+    (tc_v1,  cmap_turbo,   norm_time,  lambda v: sci(v, 1), 7.0, '(a)'),
+    (tc_v2,  cmap_turbo,   norm_time,  lambda v: sci(v, 1), 7.0, '(b)'),
+    (ratio,  cmap_rdbu,    norm_ratio, lambda v: f"{v:.2f}", 7.5, '(c)'),
+    (MAD_gz, cmap_viridis, norm_diff,  lambda v: sci(v, 0), 7.0, '(d)'),
+]
 
-[ax.text(-0.15, 1.05, label, transform=ax.transAxes, 
-         fontsize=14, fontweight='bold', va='top') 
-         for ax, label in zip(axs.flat, ['(a)', '(b)', '(c)', '(d)'])]
+# ------------------------------------------------------------------
+# Figure
+# ------------------------------------------------------------------
+fig, axes = plt.subplots(2, 2, figsize=(10, 9), constrained_layout=True)
 
-plt.tight_layout(pad=2.5)
-plt.savefig(f"Benchmark_WerSch_v1v2_nsub{nsub_max}.png", dpi=300, bbox_inches='tight')
-# plt.show()
+for ax, (data, cmap, norm, fmt, fs, letter) in zip(axes.flat, panels):
+    im = ax.imshow(data, origin='lower', cmap=cmap, norm=norm)
+
+    ax.set_xticks(NSUBs)
+    ax.set_yticks(NSUBs)
+    ax.set_xticklabels([f"{n:.0f}" for n in NPs], rotation=45)
+    ax.set_yticklabels([f"{n:.0f}" for n in NTs], rotation=45)
+    ax.set_xlabel(r'Number of observations ($N_P$)')
+    ax.set_ylabel(r'Number of faces ($N_T$)')
+
+    ax.text(-0.15, 1.10, letter, transform=ax.transAxes,
+            fontsize=16, fontweight='bold', ha='left', va='top')
+
+    annotate(ax, data, cmap, norm, fmt, fs)
+    fig.colorbar(im, ax=ax, shrink=0.9)
+
+plt.savefig(f"Benchmark_WerSch_v1v2_nsub{nsub_max}.png", dpi=300)
 # %% 
 # # ! End time
 print("="*80)
