@@ -1,24 +1,19 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
-  - numba
-  - numpy
-  - scipy
-  - xarray
-  - netcdf4
-  - matplotlib
-  - pyvista
-  - pygmt
-  - pyshtools
-  - pandas
+  - python=3.11.14
+  - numba=0.63.1
+  - numpy=2.3.5
+  - scipy=1.16.3
+  - xarray=2025.12.0
+  - netcdf4=1.7.4
+  - matplotlib=3.10.8
+  - pyvista=0.47.3
+  - pygmt=0.17.0
+  - pyshtools=4.13.1
+  - pandas=2.3.3
   - packaging
   - jupyterlab
   - notebook
   - ipykernel
   - ipywidgets
-  - jupyter_client <8
-  - pyzmq <25
-  - trame
-  - trame-vtk
-  - trame-vuetify
